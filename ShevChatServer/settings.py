@@ -25,7 +25,7 @@ SECRET_KEY = 'fs5=%2lv5*&k#8t(e(&l$*k^#e)(3t1m__k0uep9k$@16vxyl4'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 redis_host = os.environ.get('REDIS_HOST', 'localhost')
 
@@ -38,7 +38,7 @@ CHANNEL_LAYERS = {
         "CONFIG": {
             "hosts": [(redis_host, 6379)],
         },
-       "ROUTING": "ShevChatServer.routing.channel_routing", # We will create it in a moment
+        "ROUTING": "ShevChatServer.routing.channel_routing", # We will create it in a moment
     },
 }
 
@@ -51,8 +51,11 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'rest_framework',
+    'channels',
+
     'chat',
-    'channels'
+    'shevauthserver',
 ]
 
 MIDDLEWARE = [
