@@ -1,5 +1,7 @@
 import json
+import logging
 from channels import Channel
+from channels.sessions import channel_session
 from channels.auth import channel_session_user_from_http, channel_session_user
 from .settings import MSG_TYPE_LEAVE, MSG_TYPE_ENTER, NOTIFY_USERS_ON_ENTER_OR_LEAVE_ROOMS
 # from .models import ChatRoom
@@ -7,10 +9,10 @@ from .models import Topic
 from .utils import get_room_or_error, catch_client_error
 from .exceptions import ClientError
 
+log = logging.getLogger(__name__)
 
-### WebSocket handling ###
 
-
+# -- WebSocket handling --
 # This decorator copies the user from the HTTP session (only available in
 # websocket.connect or http.request messages) to the channel session (available
 # in all consumers with the same reply_channel, so all three here)
@@ -18,6 +20,8 @@ from .exceptions import ClientError
 def ws_connect(message):
     message.reply_channel.send({'accept': True})
     # Initialise their session
+    print(message['path'])
+    print("ddddddddddddddddddd")
     message.channel_session['rooms'] = []
 
 
@@ -25,6 +29,7 @@ def ws_connect(message):
 # of its own with a few attributes extra so we can route it
 # This doesn't need @channel_session_user as the next consumer will have that,
 # and we preserve message.reply_channel (which that's based on)
+@channel_session
 def ws_receive(message):
     # All WebSocket frames have either a text or binary payload; we decode the
     # text part here assuming it's JSON.

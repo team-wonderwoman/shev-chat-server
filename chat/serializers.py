@@ -37,5 +37,8 @@ class TopicListSerializer(ModelSerializer):
 
 
 class TopicDetailSerializer(ModelSerializer):
+    # messages = TopicMessage.
+
     class Meta:
         model = Topic
+        fields = ('topic_name', 'created_time')

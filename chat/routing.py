@@ -4,12 +4,16 @@ from .consumers import ws_connect, ws_receive, ws_disconnect, chat_join, chat_le
 
 # 받은 모든 메시지를 콘솔에 찍는다
 def message_handler(message):
+    print('sub routing')
     print(message['text'])
 
 
 # There's no path matching on these routes; we just rely on the matching
 # from the top-level routing. We _could_ path match here if we wanted.
+# consumer.py의 functions과 매칭
 websocket_routing = [
+    route("websocket.receive", message_handler),  # we register our message handler
+
     # Called when WebSockets connect
     route("websocket.connect", ws_connect),
 

@@ -30,6 +30,8 @@ ALLOWED_HOSTS = ["*"]
 redis_host = os.environ.get('REDIS_HOST', 'localhost')
 
 # Channel layer definitions
+# 채널이 메시지를 전달할 때 사용하는 전송 메커니즘
+# 특정한 속성을 가진 메시지 큐의 일종
 # http://channels.readthedocs.org/en/latest/deploying.html#setting-up-a-channel-backend
 CHANNEL_LAYERS = {
     "default": {

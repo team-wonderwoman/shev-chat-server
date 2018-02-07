@@ -33,7 +33,7 @@ urlpatterns = format_suffix_patterns([
     url(r'^(?P<group_id>\d+)/topics/$', topic_list, name='topic_list'),
 
     # api/group/:group_id/topics/:topic_id [GET][PUT][DELETE]
-    url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)$', topic_detail, name='topic_detail'),
+    url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)/$', topic_detail, name='topic_detail'),
 
     # # api/group/:group_id/topics [GET][POST]
     # url(r'^(?P<group_id>\d+)/topics/$', TopicListAPIView.as_view(), name='topic_list'),

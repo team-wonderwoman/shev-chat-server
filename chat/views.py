@@ -1,3 +1,6 @@
+from django.http import Http404
+from django.shortcuts import get_object_or_404
+
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
@@ -66,16 +69,16 @@ class TopicListViewSet(ModelViewSet):
     # override
     # url에 입력한 group_id에 해당하는 Topic query set을 반환
     def get_queryset(self):
-        group_id = self.kwargs['group_id']
-        print(group_id)
+        group_id = self.kwargs['group_id']  # data in url
+        print("group_id:" + str(group_id))
 
         return Topic.objects.filter(group_id=group_id)
 
     # override
     # url에 입력한 group_id에 해당하는 Topic에 POST로 넘어온 topic_name을 세팅 후 save
     def perform_create(self, serializer):
-        topic_name = self.request.data['topic_name']
-        print(topic_name)
+        topic_name = self.request.data['topic_name'] # data in POST body
+        print("topic_name: " + str(topic_name))
 
         group_id = self.kwargs['group_id']
         group = Group.objects.get(pk=group_id)
@@ -89,44 +92,66 @@ class TopicDetailViewSet(ModelViewSet):
 
     # detail [GET] 토픽 안의 내용 및 파일정보 가져오기
     def retrieve(self, request, *args, **kwargs):
-        return Response
+        """
+        Room view - show the topic, with latest topicmessages.
+        The template for this view has the WebSocket business to send and stream message,
+        so see the template for wherer the magic happens.
+        """
+        # If the room with the given topic_id doesn't exist, automatically create it
+        # upon first visit
+        topic_id = self.kwargs['topic_id']
+        print("topic_id: " + str(topic_id))
+        topic, created = Topic.objects.get_or_create(pk=topic_id)
+        topic_serializer = TopicDetailSerializer(topic)
+        # We want to show the last 100 messages, ordered most-recent-last
+        topic_message = reversed(topic.topic_messages.order_by('-created_time')[:100])
+
+        # url에 입력한 topic_id에 해당하는 Topic Serializer와 해당 topic의 기존 message들을 가져온다
+        response_json_data = {
+            # 'topic': topic,
+            'topic_serializer': topic_serializer.data,
+            'topic_message': topic_message
+        }
+        print(response_json_data)
+
+        return Response(response_json_data)
 
     # detail [PUT] 토픽 이름 변경
     def update(self, request, *args, **kwargs):
-        return Response
+        qs = self.get_queryset()
+
+        serializer = TopicDetailSerializer(
+            qs,
+            data=request.data,
+            partial=True
+        )
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     # detail [DELETE] 토픽 삭제(기본 토픽은 삭제 불가)
     def destroy(self, request, *args, **kwargs):
-        return Response
+        topic_id = self.kwargs['topic_id']
+        topic = self.get_object(topic_id)
+        topic.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
+    # override
+    # pk에 해당하는 Topic obj를 반환
+    def get_object(self, pk):
+        try:
+            return Topic.objects.get(pk=pk)
+        except Topic.DoesNotExist:
+            raise Http404  ### TODO error 수정 필요
 
-# class TopicListAPIView(ListCreateAPIView):
-#     queryset = Topic.objects.all()
-#
-#     # 해당 그룹의 토픽 리스트 조회
-#     def get(self):
-#         return Response
-#
-#     # 해당 그룹의 토픽 생성
-#     def post(self, request, *args, **kwargs):
-#         return Response
-#
-#
-# class TopicDetailAPIView(RetrieveUpdateDestroyAPIView):
-#     queryset = Topic.objects.all()
-#     serializer_class = TopicDetailSerializer
-#
-#     # 토픽 안의 내용 및 파일정보 가져오기
-#     def get(self):
-#         return Response
-#
-#     # 토픽 이름 변경
-#     def put(self, request, *args, **kwargs):
-#         return Response
-#
-#     # 토픽 삭제기본 토픽은 삭제 불가)
-#     def delete(self, request, *args, **kwargs):
-#         return Response
+    # override
+    # url에 입력한 topic_id에 해당하는 Topic query set을 반환
+    def get_queryset(self):
+        topic_id = self.kwargs['topic_id']  # data in url
+        print("topic_id:" + str(topic_id))
+
+        return Topic.objects.get(pk__in=topic_id)
 
 
 ##########################################################################
