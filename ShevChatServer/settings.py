@@ -26,11 +26,13 @@ redis_host = os.environ.get('REDIS_HOST', 'localhost')
 CHANNEL_LAYERS = {
     "default": {
         # This example app uses the Redis channel layer implementation asgi_redis
-        "BACKEND": "asgi_redis.core.RedisChannelLayer",
+
+        # "ROUTING": "ShevChatServer.routing.channel_routing", # We will create it in a moment
+        # "BACKEND": "asgi_redis.core.RedisChannelLayer",
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
         "CONFIG": {
             "hosts": [(redis_host, 6379)],
         },
-        "ROUTING": "ShevChatServer.routing.channel_routing", # We will create it in a moment
     },
 }
 
