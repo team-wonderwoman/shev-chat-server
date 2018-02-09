@@ -1,6 +1,11 @@
+import json
 from django.db import models
 from django.utils.six import python_2_unicode_compatible
+
+import channels
+
 from shevauthserver.models import User
+from .settings import MSG_TYPE_MESSAGE
 
 
 # TODO group app 으로 이동
@@ -49,6 +54,93 @@ class GroupMember(models.Model):
 
     def __str__(self):
         return str(self.group_id)
+
+
+##############################################################################################
+
+@python_2_unicode_compatible
+class Topic(models.Model):
+    """
+    A topic for people to chat in.
+    """
+    topic_name = models.CharField(max_length=50, blank=True, null=False, default='main-topic')
+    group_id = models.ForeignKey(
+        Group,
+        related_name="topics",
+        on_delete=models.CASCADE,
+    )
+    created_time = models.DateTimeField('Create Time', auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_time']
+
+    def __str__(self):
+        return self.topic_name
+
+
+    @property
+    def websocket_group(self):
+        """
+        Returns the Channels Group that sockets should subscribe to to get sent
+        messages as they are generated.
+        """
+        return channels.Group("room-%s" % self.id)  # channels group
+
+    # 방에 join/leave하거나 message를 보낼 때 client에 전달하는 json data
+    def send_message(self, message, user, msg_type=MSG_TYPE_MESSAGE):
+        """
+        Called to send a message to the room on behalf of a user.
+        """
+        final_msg = {'room': str(self.id), 'message': message, 'username': user.username, 'msg_type': msg_type}
+
+        # Send out the message to everyone in the room
+        self.websocket_group.send(
+            {"text": json.dumps(final_msg)}
+        )
+
+
+@python_2_unicode_compatible
+class TopicMember(models.Model):
+    user_id = models.ManyToManyField(User)
+    topic_id = models.ManyToManyField(
+        Topic,
+        related_name="topics"
+    )
+    created_time = models.DateTimeField('Create Time', auto_now_add=True)
+
+    def __str__(self):
+        return self.topic_id
+
+
+@python_2_unicode_compatible
+class TopicMessage(models.Model):
+    user_id = models.ManyToManyField(
+        User,
+        related_name="topic_messages"
+    )
+    topic_id = models.ManyToManyField(
+        Topic,
+        related_name="topic_messages"
+    )
+    contents = models.TextField()  # 메시지 내용
+    created_time = models.DateTimeField('Create Time', auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_time']
+
+    def __str__(self):
+        return '[{user_id}] {topic_id}: {created_time}'.format(**self.as_dict())
+
+    @property
+    def formatted_created_time(self):
+        return self.created_time.strftime('%b %-d %-I:%M %p')
+
+    def as_dict(self):
+        return {
+            'user_id': self.user_id,
+            'topic_id': self.topic_id,
+            'created_time': self.formatted_created_time
+        }
 
 ##############################################################################################
 
@@ -115,88 +207,3 @@ class GroupMember(models.Model):
 #             'chat_room_id': self.chat_room_id,
 #             'created_time': self.formatted_created_time
 #         }
-
-
-##############################################################################################
-
-@python_2_unicode_compatible
-class Topic(models.Model):
-    """
-    A topic for people to chat in.
-    """
-    topic_name = models.CharField(max_length=50, blank=True, null=False, default='main-topic')
-    group_id = models.ForeignKey(
-        Group,
-        related_name="topics"
-    )
-    created_time = models.DateTimeField('Create Time', auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_time']
-
-    def __str__(self):
-        return self.topic_name
-
-
-    @property
-    def websocket_group(self):
-        """
-        Returns the Channels Group that sockets should subscribe to to get sent
-        messages as they are generated.
-        """
-        return Group("room-%s" % self.id)
-
-    # def send_message(self, message, user, msg_type=MSG_TYPE_MESSAGE):
-    #     """
-    #     Called to send a message to the room on behalf of a user.
-    #     """
-    #     final_msg = {'room': str(self.id), 'message': message, 'username': user.username, 'msg_type': msg_type}
-    #
-    #     # Send out the message to everyone in the room
-    #     self.websocket_group.send(
-    #         {"text": json.dumps(final_msg)}
-    #     )
-
-
-@python_2_unicode_compatible
-class TopicMember(models.Model):
-    user_id = models.ManyToManyField(User)
-    topic_id = models.ManyToManyField(
-        Topic,
-        related_name="topics"
-    )
-    created_time = models.DateTimeField('Create Time', auto_now_add=True)
-
-    def __str__(self):
-        return self.topic_id
-
-
-@python_2_unicode_compatible
-class TopicMessage(models.Model):
-    user_id = models.ManyToManyField(
-        User,
-        related_name="topic_messages"
-    )
-    topic_id = models.ManyToManyField(
-        Topic,
-        related_name="topic_messages"
-    )
-    contents = models.TextField()  # 메시지 내용
-    created_time = models.DateTimeField('Create Time', auto_now_add=True)
-
-    class Meta:
-        ordering = ['-created_time']
-
-    def __str__(self):
-        return '[{user_id}] {topic_id}: {created_time}'.format(**self.as_dict())
-
-    @property
-    def formatted_created_time(self):
-        return self.created_time.strftime('%b %-d %-I:%M %p')
-
-    def as_dict(self):
-        return {
-            'user_id': self.user_id,
-            'topic_id': self.topic_id,
-            'created_time': self.formatted_created_time
-        }

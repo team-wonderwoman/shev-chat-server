@@ -14,8 +14,12 @@ import channels
 os.environ['DJANGO_SETTINGS_MODULE'] = "ShevChatServer.settings"
 channel_layer = channels.asgi.get_channel_layer()
 
-## 실행 방법
+## channals 실행 방법
 # daphne -b 0.0.0.0 -p 8001 chat.asgi:channel_layer
+
+
+
+### channels version 2
 
 # import os
 # import django

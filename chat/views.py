@@ -1,5 +1,6 @@
 from django.http import Http404
 from django.shortcuts import get_object_or_404
+from django.shortcuts import render
 
 from rest_framework.response import Response
 from rest_framework import status
@@ -18,6 +19,27 @@ from .serializers import (
     TopicListSerializer,
     TopicDetailSerializer,
 )
+## for file
+from rest_framework.parsers import FileUploadParser
+from rest_framework.views import APIView
+
+
+## for test
+# @login_required
+def index(request):
+    """
+    Root page view. This is essentially a single-page app, if you ignore the
+    login and admin parts.
+    """
+    # Get a list of rooms, ordered alphabetically
+    rooms = Topic.objects.filter(group_id=1).order_by("group_id")
+    print(rooms)
+
+    # Rende
+    # r that in the index template
+    return render(request, "index.html", {
+        "rooms": rooms,
+    })
 
 
 # 로그인한 사용자의 GroupMember List 를 반환
@@ -77,7 +99,7 @@ class TopicListViewSet(ModelViewSet):
     # override
     # url에 입력한 group_id에 해당하는 Topic에 POST로 넘어온 topic_name을 세팅 후 save
     def perform_create(self, serializer):
-        topic_name = self.request.data['topic_name'] # data in POST body
+        topic_name = self.request.data['topic_name']  # data in POST body
         print("topic_name: " + str(topic_name))
 
         group_id = self.kwargs['group_id']
@@ -153,6 +175,17 @@ class TopicDetailViewSet(ModelViewSet):
 
         return Topic.objects.get(pk__in=topic_id)
 
-
 ##########################################################################
 
+
+class FileUploadView(APIView):
+    parser_classes = (FileUploadParser,)
+
+    def post(self, request, format=None):
+        print("ddddddddddd")
+        print(request)
+        filename = self.request.data['filename']
+        print(str(filename))
+        file_obj = request.FILES['file']
+        # do some stuff with uploaded file
+        return Response(status=204)

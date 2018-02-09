@@ -4,8 +4,7 @@ from .consumers import ws_connect, ws_receive, ws_disconnect, chat_join, chat_le
 
 # 받은 모든 메시지를 콘솔에 찍는다
 def message_handler(message):
-    print('sub routing')
-    print(message['text'])
+    print('sub routing===' + message['text'])
 
 
 # There's no path matching on these routes; we just rely on the matching
@@ -28,11 +27,13 @@ websocket_routing = [
 # You can have as many lists here as you like, and choose any name.
 # Just refer to the individual names in the include() function.
 custom_routing = [
+    route("websocket.receive", message_handler),  # we register our message handler
+    route("chat.receive", message_handler),  # we register our message handler
+
     # Handling different chat commands (websocket.receive is decoded and put
     # onto this channel) - routed on the "command" attribute of the decoded
     # message.
     route("chat.receive", chat_join, command="^join$"),
     route("chat.receive", chat_leave, command="^leave$"),
     route("chat.receive", chat_send, command="^send$"),
-    route("websocket.receive", message_handler)  # we register our message handler
 ]

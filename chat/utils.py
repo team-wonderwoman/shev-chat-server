@@ -4,6 +4,7 @@ from .exceptions import ClientError
 # from .models import ChatRoom
 from .models import Topic
 
+
 def catch_client_error(func):
     """
     Decorator to catch the ClientError exception and translate it into a reply.
@@ -19,6 +20,7 @@ def catch_client_error(func):
     return inner
 
 
+# room_id에 맞는 Topic을 반환
 def get_room_or_error(room_id, user):
     """
     Tries to fetch a room for the user, checking permissions along the way.
@@ -28,10 +30,10 @@ def get_room_or_error(room_id, user):
         raise ClientError("USER_HAS_TO_LOGIN")
     # Find the room they requested (by ID)
     try:
-        room = Topic.objects.get(pk=room_id)
+        room = Topic.objects.get(pk=room_id)  # room_id에 맞는 queryset을 가져옴
     except Topic.DoesNotExist:
         raise ClientError("ROOM_INVALID")
     # Check permissions
-    if room.staff_only and not user.is_staff:
-        raise ClientError("ROOM_ACCESS_DENIED")
+    # if room.staff_only and not user.is_staff:
+    #     raise ClientError("ROOM_ACCESS_DENIED")
     return room

@@ -33,7 +33,7 @@ class TopicListSerializer(ModelSerializer):
 
     class Meta:
         model = Topic
-        fields = ('topic_name', )
+        fields = ('id', 'topic_name', )
 
 
 class TopicDetailSerializer(ModelSerializer):
@@ -41,4 +41,4 @@ class TopicDetailSerializer(ModelSerializer):
 
     class Meta:
         model = Topic
-        fields = ('topic_name', 'created_time')
+        fields = ('id', 'topic_name', 'created_time')

@@ -8,7 +8,9 @@ from .views import (
     # TopicDetailAPIView,
 
     TopicListViewSet,
-    TopicDetailViewSet
+    TopicDetailViewSet,
+
+    FileUploadView
 )
 
 topic_list = TopicListViewSet.as_view({
@@ -34,6 +36,10 @@ urlpatterns = format_suffix_patterns([
 
     # api/group/:group_id/topics/:topic_id [GET][PUT][DELETE]
     url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)/$', topic_detail, name='topic_detail'),
+
+    # api/group/fileupload
+    url(r'^fileupload/$', FileUploadView.as_view())
+    # url(r'^upload/(?P<filename>[^/]+)$', FileUploadView.as_view())
 
     # # api/group/:group_id/topics [GET][POST]
     # url(r'^(?P<group_id>\d+)/topics/$', TopicListAPIView.as_view(), name='topic_list'),
