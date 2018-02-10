@@ -23,11 +23,15 @@
     <script>
         $(function () {
             // Correctly decide between ws:// and wss://
+            // Group에 들어 왔을 때 연결 시작
             var ws_scheme = window.location.protocol == "https:" ? "wss" : "ws";
-{#            var ws_path = ws_scheme + '://' + window.location.host + "/api/group/2/topics/2/";#}
-            var ws_path = ws_scheme + '://' + window.location.host + "/chat/stream/";
+            // /api/group/:group_id/topics/:topic_id
+            // /api/group/:group_id/chats/:chat_id
+            // 이 url data를 저장해뒀다가 onopen할 때 다시 보내줘야 함
+            var ws_path = ws_scheme + '://' + window.location.host + "/api/group/1/topics/2/";
             console.log("Connecting to " + ws_path);
-            var socket = new ReconnectingWebSocket(ws_path);
+{#            var socket = new ReconnectingWebSocket(ws_path);#}
+            var socket = new WebSocket(ws_path);
 
             // Handle incoming messages
             socket.onmessage = function (message) {
@@ -49,10 +53,12 @@
                             "<form><input><button>Send</button></form>" +
                             "</div>"
                     );
+
                     // Hook up send button to send a message
                     roomdiv.find("form").on("submit", function () {
                         socket.send(JSON.stringify({
                             "command": "send",
+                            "roomtype": "topics", // roomtype 지정
                             "room": data.join,
                             "message": roomdiv.find("input").val()
                         }));
@@ -130,6 +136,7 @@
                     $(this).removeClass("joined");
                     socket.send(JSON.stringify({
                         "command": "leave",
+                        "roomtype": "topics", // roomtype 지정
                         "room": roomId
                     }));
                 } else {
@@ -137,6 +144,7 @@
                     $(this).addClass("joined");
                     socket.send(JSON.stringify({
                         "command": "join",
+                        "roomtype": "topics", // roomtype 지정
                         "room": roomId
                     }));
                 }

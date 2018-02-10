@@ -31,8 +31,8 @@ def index(request):
     Root page view. This is essentially a single-page app, if you ignore the
     login and admin parts.
     """
-    # Get a list of rooms, ordered alphabetically
-    rooms = Topic.objects.filter(group_id=1).order_by("group_id")
+    # Get a list of rooms, ordered group_id
+    rooms = Topic.objects.filter(group_id=2).order_by("group_id")
     print(rooms)
 
     # Rende

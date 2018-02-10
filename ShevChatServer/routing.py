@@ -22,8 +22,7 @@ application = ProtocolTypeRouter({
     "websocket": AuthMiddlewareStack(
         URLRouter([
             # URLRouter just takes standard Django path() or url() entries.
-            # url("api/group", ChatConsumer),
-            url("chat/stream", ChatConsumer),
+            url("api/group", ChatConsumer),
         ]),
     ),
 
