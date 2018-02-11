@@ -1,16 +1,26 @@
 from django.db import models
 from django.utils.six import python_2_unicode_compatible
-from shevauthserver.models import User
+from AuthSer.models import User
 
 
 # TODO group app 으로 이동
 class Group(models.Model):
     group_name = models.CharField(max_length=50, null=False)  # group_name 입력은 필수로 한다.
-    members = models.ManyToManyField(
+    # members = models.ManyToManyField(
+    #     User,
+    #     related_name="groups",
+    #     through='GroupMember',
+    #     through_fields=('group_id', 'user_id'),
+    # )
+    members = models.ForeignKey(
         User,
-        related_name="groups",
-        through='GroupMember',
-        through_fields=('group_id', 'user_id')
+        on_delete=models.CASCADE
+    )
+    manager_id = models.ForeignKey(
+        User,
+        related_name="groupManagers",
+        on_delete=models.CASCADE,
+        null=False
     )
 
     class Meta:
@@ -34,17 +44,16 @@ class GroupMember(models.Model):
         Group,
         related_name="groupMembers",
         on_delete=models.CASCADE
+
     )
     user_id = models.ForeignKey(
         User,
         related_name="groupMembers",
         on_delete=models.CASCADE
     )
-    manager_id = models.ForeignKey(
-        User,
-        related_name="groupManagers",
-        on_delete=models.CASCADE,
-        null=False
+    is_active = models.BooleanField(
+        null=False,
+        default=False
     )
 
     def __str__(self):

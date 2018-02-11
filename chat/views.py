@@ -7,14 +7,20 @@ from rest_framework.generics import (
     RetrieveUpdateDestroyAPIView,
 )
 
+from django.utils.encoding import force_text
+from django.utils.http import urlsafe_base64_decode
+from django.contrib.auth.tokens import PasswordResetTokenGenerator
+
 from .models import Group, GroupMember, Topic
-from shevauthserver.models import User
+from AuthSer.models import User
 
 from .serializers import (
     GroupListSerializer,
     TopicListSerializer,
     TopicDetailSerializer,
 )
+from common.const import const_value, status_code
+from .sendmail import send_verification_mail
 
 
 # 로그인한 사용자의 GroupMember List 를 반환
@@ -24,6 +30,8 @@ class GroupListAPIView(ListAPIView):
 
     def get(self, *args, **kwargs):
         queryset = self.get_queryset()
+        print("getgetget")
+        print(queryset)
         qs = Group.objects.all()
         user_id = self.kwargs['user_id']  # url에 있는 user_id를 가져온다
         print(user_id)
@@ -35,11 +43,66 @@ class GroupListAPIView(ListAPIView):
             print(serializer.data)
             return Response(serializer.data)
 
+
     # override
     def get_queryset(self, *args, **kwargs):
         queryset = GroupMember.objects.all()
-
+        print(queryset)
         return queryset
+
+    # group [POST] 새로운 그룹 생성
+    def post(self, request , *args, **kwargs):
+        userId = self.kwargs['user_id']
+
+        # 그룹 이름
+        group_name = request.data['group_name']
+        # 그룹 참여자의 이메일
+        participants = request.data['members']
+
+        # 그룹 생성자 (현재 User의 pk)
+        request.data['manager_id'] = userId
+
+        # DB에서 그룹 참여자 pk 가져오기
+        try:
+            queryset = User.objects.get(user_email=participants)
+            request.data['members'] = queryset.id
+
+        except queryset is None:
+            return Response({'result' : status_code['GROUP_MADE_FAILURE']}, status=status.HTTP_200_OK)
+
+        print(request.data)
+
+        # 이메일보내기
+        send_verification_mail(group_name, participants, queryset)
+        print("이메일 보내기 완료")
+
+        serializer = GroupListSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({'result' : status_code['GROUP_MADE_SUCCESS'], 'received_data' : serializer.data} , status=status.HTTP_200_OK)
+        else:
+            return Response({'result': status_code['GROUP_MADE_FAILURE'], 'received_data' : request.data}, status = status.HTTP_200_OK)
+
+# 이메일 인증 활성화 처리
+class GroupInviteAPIView(ListAPIView):
+    def get(self, request, *args, **kwargs):
+        uid = force_text(urlsafe_base64_decode(self.kwargs['uid64']))
+        verify_token = self.kwargs['verify_token']
+
+        print('Group_inviteAPIView_uid : %s, verify_token : %s' % (uid,verify_token))
+
+        try:
+            query = User.objects.get(pk=uid)
+            print(query)
+        except query is None:
+            print("invite activate 안됨!!")
+            return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAILURE'], 'received_data' : request.data, 'query' : query}, status = status.HTTP_200_OK)
+
+        return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAILURE'], 'received_data' : request.data ,'query' : query}, status = status.HTTP_200_OK)
+
+
+
+
 
 
 ##########################################################################

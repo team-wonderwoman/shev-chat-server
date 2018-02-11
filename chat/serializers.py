@@ -1,7 +1,8 @@
+from rest_framework import serializers
 from .models import Group, GroupMember
 # from .models import ChatRoom, ChatMember, Message
 from .models import Topic, TopicMessage, TopicMember
-from shevauthserver.models import User
+from AuthSer.models import User
 from rest_framework.serializers import (
     ModelSerializer,
     SerializerMethodField,
@@ -9,16 +10,17 @@ from rest_framework.serializers import (
     HyperlinkedIdentityField
 )
 
-
 class GroupListSerializer(ModelSerializer):
-    group_name = SerializerMethodField()
+    # group_name = SerializerMethodField()
 
     class Meta:
         model = Group
-        fields = ('group_name', )
+        fields = ('id','group_name', 'members', 'manager_id', ) #__all__
 
-    def get_group_name(self, obj):
-        return obj.values('group_name')
+    # def get_group_name(self, obj):
+    #     print(type(obj))
+    #     print(dir(obj))
+    #     return obj.group_name
 
 
 ####################################################################

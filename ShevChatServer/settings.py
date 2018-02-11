@@ -55,7 +55,7 @@ INSTALLED_APPS = [
     'channels',
 
     'chat',
-    'shevauthserver',
+    'AuthSer',
 ]
 
 MIDDLEWARE = [
@@ -94,8 +94,12 @@ WSGI_APPLICATION = 'ShevChatServer.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'shevdb', # DB명
+        'USER' : 'yejin', # 데이터베이스 계정
+        'PASSWORD' : 'yejin', # 비밀번호
+        'HOST' : '192.168.0.24', # 데이터베이스 주소
+        'PORT' : '3306', # 포트번호
     }
 }
 
