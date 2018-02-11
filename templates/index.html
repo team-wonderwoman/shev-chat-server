@@ -28,7 +28,7 @@
             // /api/group/:group_id/topics/:topic_id
             // /api/group/:group_id/chats/:chat_id
             // 이 url data를 저장해뒀다가 onopen할 때 다시 보내줘야 함
-            var ws_path = ws_scheme + '://' + window.location.host + "/api/group/1/topics/2/";
+            var ws_path = ws_scheme + '://' + window.location.host + "/api/group/1/topics/1/";
             console.log("Connecting to " + ws_path);
 {#            var socket = new ReconnectingWebSocket(ws_path);#}
             var socket = new WebSocket(ws_path);

@@ -1,6 +1,6 @@
 from .models import Group, GroupMember
 # from .models import ChatRoom, ChatMember, Message
-from .models import Topic, TopicMessage, TopicMember
+from .models import Topic, TopicMessage, TopicMember, User
 from shevauthserver.models import User
 from rest_framework.serializers import (
     ModelSerializer,
@@ -11,14 +11,9 @@ from rest_framework.serializers import (
 
 
 class GroupListSerializer(ModelSerializer):
-    group_name = SerializerMethodField()
-
     class Meta:
         model = Group
         fields = ('group_name', )
-
-    def get_group_name(self, obj):
-        return obj.values('group_name')
 
 
 ####################################################################
@@ -37,8 +32,19 @@ class TopicListSerializer(ModelSerializer):
 
 
 class TopicDetailSerializer(ModelSerializer):
-    # messages = TopicMessage.
+    # messages = TopicMessageSerializer()
 
     class Meta:
         model = Topic
         fields = ('id', 'topic_name', 'created_time')
+
+
+class TopicMessageSerializer(ModelSerializer):
+    sender = SerializerMethodField()
+
+    class Meta:
+        model = TopicMessage
+        fields = ('sender', 'topic_id', 'contents', 'created_time')
+
+    def get_sender(self, obj):
+        return obj.user_id.user_name

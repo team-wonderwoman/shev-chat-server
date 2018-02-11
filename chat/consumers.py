@@ -3,8 +3,8 @@ from django.conf import settings
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from .exceptions import ClientError
-from .utils import get_room_or_error
-from .models import Topic
+from .utils import get_room_or_error, get_previous_messages
+from .models import Topic, TopicMessage
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     """
@@ -35,6 +35,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
         await self.accept()
         self.rooms = set()
+        await self.init_room()
+        # await self.send_room(content["room"], content["roomtype"], content["message"])
 
     async def receive_json(self, content):
         """
@@ -71,6 +73,47 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 pass
 
     ##### Command helper methods called by receive_json
+
+    # 처음 group_id를 선택했을 때, 기본 topic을 열고 이전 message(100개)를 보낸다
+    async def init_room(self):
+        """
+        Called by receive_json when someone sent a join command.
+        """
+        print("============init_room============")
+        message_path_list = self.scope['path'].strip('/').split('/')
+        print("---message path list: " + str(message_path_list))
+
+        room_type = message_path_list[-2]
+        room_id = message_path_list[-1]
+
+        # The logged-in user is in our scope thanks to the authentication ASGI middleware
+        room = await get_room_or_error(room_id, self.scope["user"], room_type)
+        messages = await get_previous_messages(room_id, self.scope["user"], room_type)
+
+        # Send a join message if it's turned on
+        if settings.NOTIFY_USERS_ON_ENTER_OR_LEAVE_ROOMS:
+            await self.channel_layer.group_send(
+                room.group_name,
+                {
+                    "type": "chat.join",
+                    "room_id": room_id,
+                    "username": self.scope["user"].username,
+                }
+            )
+        # Store that we're in the room
+        self.rooms.add(room_id)
+        # Add them to the group so they get room messages
+        await self.channel_layer.group_add(
+            room.group_name,
+            self.channel_name,
+        )
+        # Instruct their client to finish opening the room
+        await self.send_json({
+            "join": str(room.id),
+            "room_id": room.id,
+            "title": room.topic_name,
+            "message": messages,  # room에 있던 기존의 message
+        })
 
     async def join_room(self, room_id, room_type):
         """
@@ -197,8 +240,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 "message": event["message"],
             },
         )
-
-
 
 
 

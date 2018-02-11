@@ -109,24 +109,33 @@ class Topic(models.Model):
 
 @python_2_unicode_compatible
 class TopicMember(models.Model):
-    user_id = models.ManyToManyField(User)
-    topic_id = models.ManyToManyField(
+    user_id = models.ForeignKey(
+        User,
+        related_name="topics"
+    )
+    topic_id = models.ForeignKey(
         Topic,
         related_name="topics"
     )
     created_time = models.DateTimeField('Create Time', auto_now_add=True)
 
     def __str__(self):
-        return self.topic_id
+        return '[{user_id}] {topic_id}'.format(**self.as_dict())
+
+    def as_dict(self):
+        return {
+            'user_id': self.user_id,
+            'topic_id': self.topic_id,
+        }
 
 
 @python_2_unicode_compatible
 class TopicMessage(models.Model):
-    user_id = models.ManyToManyField(
+    user_id = models.ForeignKey(
         User,
         related_name="topic_messages"
     )
-    topic_id = models.ManyToManyField(
+    topic_id = models.ForeignKey(
         Topic,
         related_name="topic_messages"
     )

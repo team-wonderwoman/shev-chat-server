@@ -10,6 +10,29 @@ from rest_framework.generics import (
     ListCreateAPIView,
     RetrieveUpdateDestroyAPIView,
 )
+from django.shortcuts import render
+# from django.contrib.auth.decorators import login_required
+# from django.utils.decorators import method_decorator
+#
+# import json
+# from django.core.serializers.json import DjangoJSONEncoder
+# from django.http import JsonResponse
+#
+#
+# from rest_framework.parsers import JSONParser
+# from rest_framework import serializers
+# from rest_framework.filters import SearchFilter, OrderingFilter
+# from rest_framework.mixins import DestroyModelMixin, UpdateModelMixin
+#
+#
+# from rest_framework.permissions import (
+#     AllowAny,
+#     IsAuthenticated,
+#     IsAdminUser,
+#     IsAuthenticatedOrReadOnly,
+# )
+#
+# from .permissions import IsOwnerOrReadOnly
 
 from .models import Group, GroupMember, Topic
 from shevauthserver.models import User
@@ -18,6 +41,7 @@ from .serializers import (
     GroupListSerializer,
     TopicListSerializer,
     TopicDetailSerializer,
+    TopicMessageSerializer,
 )
 ## for file
 from rest_framework.parsers import FileUploadParser
@@ -32,7 +56,8 @@ def index(request):
     login and admin parts.
     """
     # Get a list of rooms, ordered group_id
-    rooms = Topic.objects.filter(group_id=2).order_by("group_id")
+    # json post로 넘겨준 group_id에 해당하는 topic, chat list를 넘겨준다.
+    rooms = Topic.objects.filter(group_id=1).order_by("group_id")
     print(rooms)
 
     # Rende
@@ -123,16 +148,21 @@ class TopicDetailViewSet(ModelViewSet):
         # upon first visit
         topic_id = self.kwargs['topic_id']
         print("topic_id: " + str(topic_id))
+
         topic, created = Topic.objects.get_or_create(pk=topic_id)
         topic_serializer = TopicDetailSerializer(topic)
+
+        topic_message = topic.topic_messages.order_by('-created_time')[:100]
+        topic_message_serializer = TopicMessageSerializer(topic_message, many=True)
+
         # We want to show the last 100 messages, ordered most-recent-last
-        topic_message = reversed(topic.topic_messages.order_by('-created_time')[:100])
+        # topic_message = reversed(topic_message_serializer)
 
         # url에 입력한 topic_id에 해당하는 Topic Serializer와 해당 topic의 기존 message들을 가져온다
         response_json_data = {
             # 'topic': topic,
             'topic_serializer': topic_serializer.data,
-            'topic_message': topic_message
+            'topic_message_serializer': topic_message_serializer.data,
         }
         print(response_json_data)
 
