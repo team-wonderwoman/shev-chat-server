@@ -15,13 +15,18 @@ class GroupListSerializer(ModelSerializer):
 
     class Meta:
         model = Group
-        fields = ('id','group_name', 'members', 'manager_id', ) #__all__
+        fields = ('id','group_name','manager_id', ) #__all__
 
     # def get_group_name(self, obj):
     #     print(type(obj))
     #     print(dir(obj))
     #     return obj.group_name
 
+
+class GroupMemberModelSerializer(ModelSerializer):
+    class Meta:
+        model = GroupMember
+        fields = ('id', 'group_id','members','user_id','is_active', ) #__all__
 
 ####################################################################
 

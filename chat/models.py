@@ -12,10 +12,6 @@ class Group(models.Model):
     #     through='GroupMember',
     #     through_fields=('group_id', 'user_id'),
     # )
-    members = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE
-    )
     manager_id = models.ForeignKey(
         User,
         related_name="groupManagers",
@@ -27,8 +23,8 @@ class Group(models.Model):
         verbose_name = "group"
         verbose_name_plural = "groups"
 
-    def __str__(self):
-        return self.group_name
+    # def __str__(self):
+    #    return self.group_name
 
     # # 이 그룹의 모든 토픽을 가져온다.
     # def get_topic(self):
@@ -44,12 +40,15 @@ class GroupMember(models.Model):
         Group,
         related_name="groupMembers",
         on_delete=models.CASCADE
-
     )
     user_id = models.ForeignKey(
         User,
         related_name="groupMembers",
         on_delete=models.CASCADE
+    )
+    members = models.ForeignKey(
+        User,
+        to_field = 'user_email'
     )
     is_active = models.BooleanField(
         null=False,

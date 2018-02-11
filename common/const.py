@@ -4,7 +4,8 @@ const_value = {
     'SESSION_EXIST' : 'Session_exist',
     'SESSION_CREATED' : 'Session_created',
     'TOKEN_DOES_NOT_EXIST' : 'Token does not exist',
-    'INVITATION_LINK' : 'http://192.168.0.24:9000/api/group/invite/',
+    'INVITATION_LINK' : 'http://192.168.0.24:9000/api/group/invitation/',
+    'PARTICIPATION_LINK': 'http://192.168.0.24:9000/api/group/join/',
     'CONFIRMATION_LINK' : 'http://192.168.0.24:8000/api/signup/',
 }
 
@@ -99,6 +100,16 @@ status_code = {
         "msg" : "Group list is retreived",
         "option" : ""
     },
+    'GROUP_INVITATION_SUCCESS': {
+        "code": 5201,
+        "msg": "Group invite Success",
+        "option": ""
+    },
+    'GROUP_INVITATION_ACTIVATE_SUCCESS': {
+        "code": 5202,
+        "msg": "Activation Success",
+        "option": ""
+    },
     'GROUP_MADE_FAILURE': {
         "code": 5400,
         "msg": "Group creation fail",
@@ -109,8 +120,13 @@ status_code = {
         "msg": "Cannot retrieve list of group",
         "option": ""
     },
-    'GROUP_INVITATION_ACTIVATE_FAILURE': {
+    'GROUP_INVITATION_FAILURE': {
         "code": 5402,
+        "msg": "Group invite Fail",
+        "option": ""
+    },
+    'GROUP_INVITATION_ACTIVATE_FAILURE': {
+        "code": 5403,
         "msg": "Activation Fail",
         "option": ""
     },

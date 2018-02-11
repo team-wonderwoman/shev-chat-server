@@ -40,6 +40,8 @@ urlpatterns = format_suffix_patterns([
     #
     # # api/group/:group_id/topics/:topic_id [GET][PUT][DELETE]
     # url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)$', TopicDetailAPIView.as_view(), name='topic_detail'),
-    url(r'^invite/(?P<uid64>[0-9A-Za-z_\-]+)/(?P<verify_token>[0-9A-Za-z]{1,13}-[0-9A-Za-z]{1,20})/$',
-        GroupInviteAPIView.as_view(), name='group_invite'),
+    url(r'^(?P<user_id>\d+)/invitation/$',GroupInviteAPIView.as_view(), name='group_invite'),
+
+    url(r'^join/(?P<uid64>[0-9A-Za-z_\-]+)/(?P<verify_token>[0-9A-Za-z]+)/$',
+        GroupInviteAPIView.as_view(), name='group_join'),
 ])

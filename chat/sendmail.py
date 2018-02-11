@@ -15,9 +15,11 @@ from django.utils.http import urlsafe_base64_encode
 from email.message import EmailMessage
 from email.mime.application import MIMEApplication
 from common.const import const_value
+from AuthSer.redis import redis_set
 
-def create_verify_token(query):
+def create_verify_token(group_name,query):
     payload = {
+        'group_name' : group_name,
         'user_email': query.user_email,
         'user_name': query.user_name,
         'datetime': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -30,8 +32,19 @@ def create_verify_token(query):
 
     return verify_token
 
+
+def decode_verify_token(encoded_verify_token):
+    decoded_token = jwt.decode(encoded_verify_token, "SECRET_KEY", algorithms=['HS256'])
+
+    print("decoded_verify_token 함수")
+    print(decoded_token)
+
+    return decoded_token['group_name']
+
+
 # 그룹 초대 링크 이메일 보내는 함수
 def send_verification_mail(group_name, participants, queryset):
+    #password = getpass.getpass('Password : ')
     password = 'roqkfwk1234'
     print("password? : "+password)
     #print('request.data',end='')
@@ -46,17 +59,17 @@ def send_verification_mail(group_name, participants, queryset):
 
     message = EmailMessage()
     message['Subject'] = 'Verification Email : Participate in your group!'
-    message['From'] = 'dpwlsl9504'
+    message['From'] = 'dpwlsl9504@naver.com'
     message['To'] = participants
 
 
     uid = str(urlsafe_base64_encode(force_bytes(queryset.id)),'utf-8')
-    verify_token = str(urlsafe_base64_encode(force_bytes(create_verify_token(queryset))),'utf-8')
+    verify_token = str(urlsafe_base64_encode(force_bytes(create_verify_token(group_name,queryset))),'utf-8')
 
     print(uid)
     print(verify_token)
 
-    link = """{}{}/{}/""".format(const_value['INVITATION_LINK'],uid,verify_token)
+    link = """{}{}/{}/""".format(const_value['PARTICIPATION_LINK'],uid,verify_token)
 
     print("링크는?")
     print(link)
@@ -75,6 +88,10 @@ def send_verification_mail(group_name, participants, queryset):
         server.send_message(message)
 
     print('Verification Email Send')
+
+    # redis_set(verify_token, uid)
+
+
 
 
 def send_registration_mail(self, serializer):
