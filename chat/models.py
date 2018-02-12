@@ -165,6 +165,104 @@ class TopicMessage(models.Model):
 # @python_2_unicode_compatible
 # class ChatRoom(models.Model):
 #     """
+#     A chat for people to chat in.
+#     """
+#     chatroom_name = models.CharField(max_length=50, blank=True, null=False, default='main-topic')
+#     group_id = models.ForeignKey(
+#         Group,
+#         related_name="topics",
+#         on_delete=models.CASCADE,
+#     )
+#     created_time = models.DateTimeField('Create Time', auto_now_add=True)
+#
+#     class Meta:
+#         ordering = ['-created_time']
+#
+#     def __str__(self):
+#         return self.topic_name
+#
+#     @property
+#     def group_name(self):
+#         """
+#         Returns the Channels Group name that sockets should subscribe to to get sent
+#         messages as they are generated.
+#         """
+#         print("============group_name============" + str(self.id))
+#         return "room-%s" % self.id
+#
+#         # @property
+#         # def websocket_group(self):
+#         #     """
+#         #     Returns the Channels Group that sockets should subscribe to to get sent
+#         #     messages as they are generated.
+#         #     """
+#         #     return channels.Group("room-%s" % self.id)  # channels group
+#         #
+#         # # 방에 join/leave하거나 message를 보낼 때 client에 전달하는 json data
+#         # def send_message(self, message, user, msg_type=MSG_TYPE_MESSAGE):
+#         #     """
+#         #     Called to send a message to the room on behalf of a user.
+#         #     """
+#         #     final_msg = {'room': str(self.id), 'message': message, 'username': user.username, 'msg_type': msg_type}
+#         #
+#         #     # Send out the message to everyone in the room
+#         #     self.websocket_group.send(
+#         #         {"text": json.dumps(final_msg)}
+#         #     )
+#
+# @python_2_unicode_compatible
+# class TopicMember(models.Model):
+#     user_id = models.ForeignKey(
+#         User,
+#         related_name="topics"
+#     )
+#     topic_id = models.ForeignKey(
+#         Topic,
+#         related_name="topics"
+#     )
+#     created_time = models.DateTimeField('Create Time', auto_now_add=True)
+#
+#     def __str__(self):
+#         return '[{user_id}] {topic_id}'.format(**self.as_dict())
+#
+#     def as_dict(self):
+#         return {
+#             'user_id': self.user_id,
+#             'topic_id': self.topic_id,
+#         }
+#
+# @python_2_unicode_compatible
+# class TopicMessage(models.Model):
+#     user_id = models.ForeignKey(
+#         User,
+#         related_name="topic_messages"
+#     )
+#     topic_id = models.ForeignKey(
+#         Topic,
+#         related_name="topic_messages"
+#     )
+#     contents = models.TextField()  # 메시지 내용
+#     created_time = models.DateTimeField('Create Time', auto_now_add=True)
+#
+#     class Meta:
+#         ordering = ['-created_time']
+#
+#     def __str__(self):
+#         return '[{user_id}] {topic_id}: {created_time}'.format(**self.as_dict())
+#
+#     @property
+#     def formatted_created_time(self):
+#         return self.created_time.strftime('%b %-d %-I:%M %p')
+#
+#     def as_dict(self):
+#         return {
+#             'user_id': self.user_id,
+#             'topic_id': self.topic_id,
+#             'created_time': self.formatted_created_time
+#         }
+# @python_2_unicode_compatible
+# class ChatRoom(models.Model):
+#     """
 #     A room for people to chat in.
 #     """
 #     group_id = models.ForeignKey(

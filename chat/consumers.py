@@ -81,14 +81,17 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         """
         print("============init_room============")
         message_path_list = self.scope['path'].strip('/').split('/')
+        # api/group/:group_id/
         print("---message path list: " + str(message_path_list))
 
-        room_type = message_path_list[-2]
-        room_id = message_path_list[-1]
+        group_id = message_path_list[2]
+
+        # Topic room_pk는 삭제 불가능한 기본 토픽에 해당한다
+        room_pk = 1
 
         # The logged-in user is in our scope thanks to the authentication ASGI middleware
-        room = await get_room_or_error(room_id, self.scope["user"], room_type)
-        messages = await get_previous_messages(room_id, self.scope["user"], room_type)
+        room = await get_room_or_error(room_pk, self.scope["user"], None)
+        messages = await get_previous_messages(room_pk, self.scope["user"], None)
 
         # Send a join message if it's turned on
         if settings.NOTIFY_USERS_ON_ENTER_OR_LEAVE_ROOMS:
@@ -96,12 +99,12 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 room.group_name,
                 {
                     "type": "chat.join",
-                    "room_id": room_id,
+                    "room_id": room_pk,
                     "username": self.scope["user"].username,
                 }
             )
         # Store that we're in the room
-        self.rooms.add(room_id)
+        self.rooms.add(room_pk)
         # Add them to the group so they get room messages
         await self.channel_layer.group_add(
             room.group_name,

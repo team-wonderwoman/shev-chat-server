@@ -17,8 +17,9 @@ def get_room_or_error(room_id, user, room_type):
     # if not user.is_authenticated:
     #     raise ClientError("USER_HAS_TO_LOGIN")
     # Find the room they requested (by ID)
+
     try:
-        if room_type == "topics":
+        if room_type == "topics" or None:
             room = Topic.objects.get(pk=room_id)
         elif room_type == "chats":
             # room = Chat.objects.get(pk=room_id)
@@ -31,13 +32,14 @@ def get_room_or_error(room_id, user, room_type):
     # Check permissions
     # if room.staff_only and not user.is_staff:
     #     raise ClientError("ROOM_ACCESS_DENIED")
+
     return room
 
 
 @database_sync_to_async
 def get_previous_messages(room_id, user, room_type):
     try:
-        if room_type == "topics":
+        if room_type == "topics" or None:
             room = Topic.objects.get(pk=room_id)
             # We want to show the last 100 messages, ordered most-recent-last
             # (기존의 메시지 100개를 가져온다)
@@ -51,10 +53,10 @@ def get_previous_messages(room_id, user, room_type):
                 'messages_serializer': messages_serializer.data,
             }
             print(response_json_data)
-
         elif room_type == "chats":
             # room = Chat.objects.get(pk=room_id)
             pass
+
     except Topic.DoesNotExist:
         raise ClientError("Topic ROOM_INVALID")
     # except Chat.DoesNotExist:

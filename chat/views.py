@@ -92,7 +92,18 @@ class GroupListAPIView(ListAPIView):
         return queryset
 
 
+class GroupDetailAPIView(APIView):
+
+    # user가 속한 그룹의 Topic, Chat list를 반환한다
+    def get(self, *args, **kwargs):
+        print("groupdetailapiview")
+        group_id = self.kwargs['group_id']
+        queryset = Topic.objects.filter(group_id=group_id).order_by('pk')
+        serializer = TopicListSerializer(queryset, many=True)
+        return Response(serializer.data)
+
 ##########################################################################
+
 
 class TopicListViewSet(ModelViewSet):
     queryset = Topic.objects.all()
@@ -164,7 +175,6 @@ class TopicDetailViewSet(ModelViewSet):
             'topic_serializer': topic_serializer.data,
             'topic_message_serializer': topic_message_serializer.data,
         }
-        print(response_json_data)
 
         return Response(response_json_data)
 
