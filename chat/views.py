@@ -1,6 +1,5 @@
 import json
 from rest_framework.response import Response
-from rest_framework.parsers import JSONParser
 from rest_framework import status
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import (
@@ -11,7 +10,6 @@ from rest_framework.generics import (
 
 from django.utils.encoding import force_text
 from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.tokens import PasswordResetTokenGenerator
 
 from .models import Group, GroupMember, Topic
 from AuthSer.models import User
@@ -23,8 +21,7 @@ from .serializers import (
     TopicDetailSerializer,
 )
 from common.const import const_value, status_code
-from .sendmail import send_verification_mail, send_registration_mail ,decode_verify_token
-from AuthSer.redis import redis_exists, redis_get
+from .sendmail import send_verification_mail, decode_verify_token
 
 
 # 로그인한 사용자의 GroupMember List 를 반환
@@ -32,54 +29,31 @@ from AuthSer.redis import redis_exists, redis_get
 class GroupListAPIView(ListAPIView):
     serializer_class = GroupListSerializer
 
+    # [GET] User가 속한 그룹 조회
     def get(self, *args, **kwargs):
-        queryset = self.get_queryset()
-        qs = Group.objects.all()
-        for i in qs:
-            print(i.id, end=' , ')
-            print(i.group_name, end=' , ')
-            print(i.members, end=' , ')
-            print(i.manager_id.id)
-        user_id = int(self.kwargs['user_id'])  # url에 있는 user_id를 가져온다
-        print(user_id)
+        queryset = self.get_queryset() # GroupMember 에서 사용자와 그룹 간 관계 가져옴
+        qs = Group.objects.all() # 존재하는 그룹을 모두 가져옴
+        user_id = int(self.kwargs['user_id'])  # url에 있는 user_id를 가져옴
 
         if user_id is not None:
-            queryset = queryset.filter(user_id=user_id)  # user가 속한 group을 가져온다
-            print("user_id is Not None")
-            for i in queryset:
-                print(i.id, end=' , ')
-                print(i.group_id.id, end=' , ')
-                print(i.user_id.id, end=' , ')
-                print(i.is_active)
-            qs = qs.filter(pk=queryset.group_id)  # 해당 group의 name을 가져온다
-            serializer = GroupListSerializer(qs)
-            print(serializer.data)
-            return Response(serializer.data)
+            queryset = queryset.filter(user_id=user_id)  # user가 속한 group의 group_id 만을 가져옴
+            qs = qs.filter(pk__in=queryset.values('group_id'))  # 해당 group의 group_id로 group_name을 가져옴
+            serializer = GroupListSerializer(qs, many=True)
+            return Response({'result' : status_code['GROUP_LIST_SUCCESS'], 'received_data' : serializer.data}, status=status.HTTP_200_OK)
+        return Response({'result' : status_code['GROUP_LIST_FAILURE']}, status=status.HTTP_200_OK)
 
 
-    # override
+    # override [GET] GroupMember 테이블의 모든 컬럼 조회
     def get_queryset(self, *args, **kwargs):
         queryset = GroupMember.objects.all()
-        print("GroupMemberModelSerializer")
-        for i in queryset:
-            print(i.id,end=' , ')
-            print(i.group_id.id,end=' , ')
-            print(i.user_id.id, end=' , ')
-            print(i.is_active)
-        #print(queryset)
         return queryset
 
     # group [POST] 새로운 그룹 생성
     def post(self, request , *args, **kwargs):
-        userId = self.kwargs['user_id']
+        userId = self.kwargs['user_id'] # url에 있는 user_id를 가져옴
 
-        # 그룹 이름
-        group_name = request.data['group_name']
-
-        # 그룹 생성자 (현재 User의 pk)
+        # manager_id를 현재 User의 pk로 지정 (그룹 생성자)
         request.data['manager_id'] = userId
-
-        print(request.data)
 
         serializer = GroupListSerializer(data=request.data)
         if serializer.is_valid():
@@ -89,63 +63,8 @@ class GroupListAPIView(ListAPIView):
             return Response({'result': status_code['GROUP_MADE_FAILURE'], 'received_data' : request.data}, status = status.HTTP_200_OK)
 
 
-# 그룹 초대 및 이메일 인증 활성화 처리
+# 그룹에 멤버 초대 및 이메일 인증 활성화 처리
 class GroupInviteAPIView(ListAPIView):
-    # [GET] 이메일 인증 처리
-    def get(self, request, *args, **kwargs):
-        print("invite인증처리들어와?")
-
-        uid = force_text(urlsafe_base64_decode(self.kwargs['uid64']))
-        verify_token = force_text(urlsafe_base64_decode(self.kwargs['verify_token']))
-
-        print('Group_inviteAPIView_uid : %s, verify_token : %s' % (uid,verify_token))
-
-        uid = int(uid)
-        try:
-            print("query 날리기 전")
-            query = User.objects.get(id=uid)
-
-        except query is None:
-            print("invite activate 안됨!!")
-            return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAILURE'], 'received_data' : request.data, 'query' : query}, status = status.HTTP_200_OK)
-
-        # if redis_get(verify_token) == str(uid):
-        #     verify_token = jwt.decode(verify_token)
-        #     print("verify-[toekn redis get?")
-        #     print(verify_token)
-
-        verify_token = decode_verify_token(verify_token)
-        print(verify_token)
-
-        group = Group.objects.get(group_name=verify_token)
-        print("group_id??", end='')
-        print(group.id)
-
-        dict = ({"group_id" : group.id , "user_id" : uid , "is_active" : True})
-        print("json_dumps 전 dict ", end='')
-        print(type(dict))
-
-        dict = json.dumps(dict)
-
-        print(type(dict))
-
-        dict_dump = json.loads(dict)
-        print("json_loads 후 dict ", end='')
-        print(dict_dump)
-        print(type(dict_dump))
-
-        print("????")
-        serializer = GroupMemberModelSerializer(data=dict_dump)
-        print("?>DJKLSDF?")
-
-        if serializer.is_valid(raise_exception=True):
-            print("verify_token_invitation_들어와따!")
-            serializer.save()
-            print(serializer.data['group_id'])
-            print(serializer.data['user_id'])
-            print(serializer.data['is_active'])
-            return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_SUCCESS'], 'saved_data' : serializer.data}, status = status.HTTP_200_OK)
-        return Response({'result' : status_code['GROUP_INVITATION_ACTIVATE_FAILURE'] , 'received_data' : request.data} , status=status.HTTP_200_OK)
 
     # [POST] 그룹에 멤버 초대
     def post(self, request, *args, **kwargs):
@@ -187,6 +106,57 @@ class GroupInviteAPIView(ListAPIView):
         else:
             return Response({'result': status_code['GROUP_INVITATION_FAILURE'], 'received_data': request.data},
                             status=status.HTTP_200_OK)
+
+class GroupJoinAPIView(ListAPIView):
+
+    # [GET] 이메일 인증 처리 - 사용자가 메일로 발송된 url 클릭 시 is_activate 필드 True로 바꿈
+    def get(self, request, *args, **kwargs):
+        uid = force_text(urlsafe_base64_decode(self.kwargs['uid64']))  # url에 있는 base64 인코딩 된 uid를 decode해서 가져옴
+        verify_token = force_text(urlsafe_base64_decode(self.kwargs['verify_token'])) # url에 있는 token을 decode해서 가져옴
+
+        print('Group_inviteAPIView_uid : %s, verify_token : %s' % (uid, verify_token))
+
+        uid = int(uid)
+        try:
+            query = User.objects.get(id=uid) # 인증할 사용자의 data를 가져옴
+
+        except query is None:
+            return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAILURE']}, status=status.HTTP_200_OK)
+
+        verify_token = decode_verify_token(verify_token) # 그룹 초대 인증 토큰 확인 - 그룹 이름 꺼내옴
+
+        group = Group.objects.get(group_name=verify_token)
+        print("group_id??", end='')
+        print(group.id)
+
+        dict = ({"group_id": group.id, "user_id": uid, "is_active": True})
+        print("json_dumps 전 dict ", end='')
+        print(type(dict))
+
+        dict = json.dumps(dict)
+
+        print(type(dict))
+
+        dict_dump = json.loads(dict)
+        print("json_loads 후 dict ", end='')
+        print(dict_dump)
+        print(type(dict_dump))
+
+        print("????")
+        serializer = GroupMemberModelSerializer(data=dict_dump)
+        print("?>DJKLSDF?")
+
+        if serializer.is_valid(raise_exception=True):
+            print("verify_token_invitation_들어와따!")
+            serializer.save()
+            print(serializer.data['group_id'])
+            print(serializer.data['user_id'])
+            print(serializer.data['is_active'])
+            return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_SUCCESS'], 'saved_data': serializer.data},
+                            status=status.HTTP_200_OK)
+        return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAILURE'], 'received_data': request.data},
+                        status=status.HTTP_200_OK)
+
 
 
 ##########################################################################

@@ -22,7 +22,6 @@ class GroupListSerializer(ModelSerializer):
     #     print(dir(obj))
     #     return obj.group_name
 
-
 class GroupMemberModelSerializer(ModelSerializer):
     class Meta:
         model = GroupMember

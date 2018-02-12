@@ -4,6 +4,7 @@ from rest_framework.urlpatterns import format_suffix_patterns
 from .views import (
     GroupListAPIView,
     GroupInviteAPIView,
+    GroupJoinAPIView,
     # TopicListAPIView,
     # TopicDetailAPIView,
 
@@ -40,8 +41,10 @@ urlpatterns = format_suffix_patterns([
     #
     # # api/group/:group_id/topics/:topic_id [GET][PUT][DELETE]
     # url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)$', TopicDetailAPIView.as_view(), name='topic_detail'),
+
+    # api/group/:user_id/invitation [POST]
     url(r'^(?P<user_id>\d+)/invitation/$',GroupInviteAPIView.as_view(), name='group_invite'),
 
-    url(r'^join/(?P<uid64>[0-9A-Za-z_\-]+)/(?P<verify_token>[0-9A-Za-z]+)/$',
-        GroupInviteAPIView.as_view(), name='group_join'),
+    # api/group/join/:uid64/:verify_token [GET]
+    url(r'^join/(?P<uid64>[0-9A-Za-z_\-]+)/(?P<verify_token>[0-9A-Za-z]+)/$',GroupJoinAPIView.as_view(), name='group_join'),
 ])
