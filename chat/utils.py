@@ -17,9 +17,10 @@ def get_room_or_error(room_id, user, room_type):
     # if not user.is_authenticated:
     #     raise ClientError("USER_HAS_TO_LOGIN")
     # Find the room they requested (by ID)
+    room = None
 
     try:
-        if room_type == "topics" or None:
+        if room_type == "topics" or room_type == None:
             room = Topic.objects.get(pk=room_id)
         elif room_type == "chats":
             # room = Chat.objects.get(pk=room_id)
@@ -38,8 +39,10 @@ def get_room_or_error(room_id, user, room_type):
 
 @database_sync_to_async
 def get_previous_messages(room_id, user, room_type):
+    response_json_data = None
+
     try:
-        if room_type == "topics" or None:
+        if room_type == "topics" or room_type == None:
             room = Topic.objects.get(pk=room_id)
             # We want to show the last 100 messages, ordered most-recent-last
             # (기존의 메시지 100개를 가져온다)
