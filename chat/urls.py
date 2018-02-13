@@ -43,9 +43,9 @@ urlpatterns = format_suffix_patterns([
     # 사용자의 그룹 리스트를 보여준다
     url(r'^(?P<user_id>\d+)/$', GroupListAPIView.as_view(), name='group_list'),
 
-    # api/group/:user_id/:group_id
+    # api/group/:group_id/:user_id
     # 사용자 그룹의 Topic과 Chat list를 반환한다
-    url(r'^(?P<user_id>\d+)/(?P<group_id>\d+)/$', GroupDetailAPIView.as_view(), name='group_detail'),
+    url(r'^(?P<group_id>\d+)/(?P<user_id>\d+)/$', GroupDetailAPIView.as_view(), name='group_detail'),
 
     ###########################################################################################
 
@@ -62,6 +62,7 @@ urlpatterns = format_suffix_patterns([
 
     # api/group/:group_id/chatrooms/:chatroom_id [GET][DELETE]
     url(r'^(?P<group_id>\d+)/chatrooms/(?P<chatroom_id>\d+)/$', chatRoom_detail, name='chatRoom_detail'),
+
 
     ###########################################################################################
 

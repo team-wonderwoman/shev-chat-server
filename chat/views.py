@@ -77,23 +77,19 @@ class GroupListAPIView(ListAPIView):
     serializer_class = GroupListSerializer
 
     def get(self, *args, **kwargs):
-        queryset = self.get_queryset()
-        qs = Group.objects.all()
+        # queryset = GroupMember.objects.all()
+        # qs = Group.objects.all()
         user_id = self.kwargs['user_id']  # url에 있는 user_id를 가져온다
         print(user_id)
 
         if user_id is not None:
-            queryset = queryset.filter(user_id=user_id)  # user가 속한 group을 가져온다
-            qs = qs.filter(pk__in=queryset.values('group_id'))  # 해당 group의 name을 가져온다
+            # queryset = queryset.filter(user_id=user_id)  # user가 속한 group을 가져온다
+            queryset = GroupMember.objects.filter(user_id=user_id)
+            # qs = qs.filter(pk__in=queryset.values('group_id'))  # 해당 group의 name을 가져온다
+            qs = Group.objects.filter(pk__in=queryset.values('group_id'))
             serializer = GroupListSerializer(qs)
             print(serializer.data)
             return Response(serializer.data)
-
-    # override
-    def get_queryset(self, *args, **kwargs):
-        queryset = GroupMember.objects.all()
-
-        return queryset
 
 
 class GroupDetailAPIView(APIView):
@@ -235,39 +231,21 @@ class ChatRoomListViewSet(ModelViewSet):
 
     # list [GET] 해당 그룹의 '자신이 속한' 채팅방 리스트 조회
     def list(self, request, *args, **kwargs):
-        queryset = self.get_queryset()
+        # user_id = self.kwargs['user_id']  # url에 있는 user_id를 가져온다
+        user_id = 1  # TODO
         group_id = self.kwargs['group_id']  # url에 있는 group_id를 가져온다
-        serializer = ChatRoomListSerializer(queryset, many=True)  # 해당 group의 모든 member를 가져온다
-        print(serializer.data)
-        chatrooms = ChatRoom.objects.filter(group=group_id).order_by("pk")
-        chatrooms_serializer = ChatRoomListSerializer(chatrooms, many=True)
-        print("[[ChatRoomListViewSet]] --- chatrooms")
-        print(chatrooms)
-        # print(chatrooms_serializer.data)
-        # print(chatrooms_serializer.data['chatRoomMember_name'])
+        print("user_id: " + str(user_id) + ", group_id: " + str(group_id))
 
-        return Response(serializer.data)
+        if user_id is not None:
+            # ChatRoomMember에서 해당 사용자가 속한 ChatRoomMember query를 가져온다
+            chatRoomMember_queryset = ChatRoomMember.objects.filter(user=user_id)  # user가 속한 chatroom을 가져온다
 
-    # queryset1 = Topic.objects.filter(group_id=group_id).order_by('pk')
-    #     queryset2 = ChatRoom.objects.filter(group_id=group_id).order_by('pk')
-    #     serializer1 = TopicListSerializer(queryset1, many=True)
-    #     serializer2 = ChatRoomListSerializer(queryset2, many=True)
-    # groups = Group.objects.filter(group_id=1).order_by("group_id")
-    # queryset = self.get_queryset()
-    # group = Group.objects.filter(group=group_id)
-    # qs = ChatRoom.objects.filter(group=group_id)
-    # user_id = self.kwargs['user_id']  # url에 있는 user_id를 가져온다
-    # print(user_id)
-    #
-    # if user_id is not None:
-    #     queryset = queryset.filter(user_id=user_id)  # user가 속한 group을 가져온다
-    #     qs = qs.filter(pk__in=queryset.values('group_id'))  # 해당 group의 name을 가져온다
-    #     serializer = GroupListSerializer(qs)
-    #     print(serializer.data)
-    #     return Response(serializer.data)
+            # ChatRoomMember query에서 ChatRoom pk를 이용해 해당 ChatRoom query를 모두 가져온다
+            # 해당 ChatRoom에서 user가 현재 들어온 group에 속한 ChatRoom만을 반환한다
+            chatRoom_queryset = ChatRoom.objects.filter(pk__in=chatRoomMember_queryset.values('chatRoom'), group=group_id)
 
-
-
+            serializer = ChatRoomListSerializer(chatRoom_queryset, many=True)  # 자신이 속한 chatRoom를 가져온다
+            return Response(serializer.data)
 
     # list [POST] 해당 그룹의 채팅방 생성, POST로 채팅방의 멤버로 등록
     def create(self, request, *args, **kwargs):
