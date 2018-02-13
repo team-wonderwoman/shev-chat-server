@@ -86,8 +86,11 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
         group_id = message_path_list[2]
 
-        # Topic room_pk는 삭제 불가능한 기본 토픽에 해당한다
-        room_pk = 1
+        # Topic list의 첫번째 room_pk는 삭제 불가능한 기본 토픽에 해당한다
+        # room_pk = 1
+        room = Topic.objects.filter(group_id=group_id).order_by('pk')[0]
+        room_pk = room.id
+        print("room_pk: " + str(room_pk))
 
         # The logged-in user is in our scope thanks to the authentication ASGI middleware
         room = await get_room_or_error(room_pk, self.scope["user"], None)
@@ -125,6 +128,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         print("============join_room============")
         # The logged-in user is in our scope thanks to the authentication ASGI middleware
         room = await get_room_or_error(room_id, self.scope["user"], room_type)
+        messages = await get_previous_messages(room_id, self.scope["user"], room_type)
+
         # Send a join message if it's turned on
         if settings.NOTIFY_USERS_ON_ENTER_OR_LEAVE_ROOMS:
             await self.channel_layer.group_send(
@@ -146,7 +151,8 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json({
             "join": str(room.id),
             "room_id": room.id,
-            "title": room.topic_name,
+            # "title": room.topic_name,
+            "message": messages,  # room에 있던 기존의 message
         })
 
     async def leave_room(self, room_id, room_type):
@@ -155,7 +161,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         """
         print("============leave_room============")
         # The logged-in user is in our scope thanks to the authentication ASGI middleware
-        room = await get_room_or_error(room_id, self.scope["user"])
+        room = await get_room_or_error(room_id, self.scope["user"], room_type)
         # Send a leave message if it's turned on
         if settings.NOTIFY_USERS_ON_ENTER_OR_LEAVE_ROOMS:
             await self.channel_layer.group_send(

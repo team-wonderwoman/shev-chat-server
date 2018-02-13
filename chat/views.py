@@ -34,7 +34,7 @@ from django.shortcuts import render
 #
 # from .permissions import IsOwnerOrReadOnly
 
-from .models import Group, GroupMember, Topic
+from .models import Group, GroupMember, Topic, ChatRoom, ChatRoomMember
 from shevauthserver.models import User
 
 from .serializers import (
@@ -42,6 +42,10 @@ from .serializers import (
     TopicListSerializer,
     TopicDetailSerializer,
     TopicMessageSerializer,
+    ChatRoomListSerializer,
+    ChatRoomDetailSerializer,
+    ChatRoomMessageSerializer,
+    ChatRoomMemberSerializer,
 )
 ## for file
 from rest_framework.parsers import FileUploadParser
@@ -98,9 +102,16 @@ class GroupDetailAPIView(APIView):
     def get(self, *args, **kwargs):
         print("groupdetailapiview")
         group_id = self.kwargs['group_id']
-        queryset = Topic.objects.filter(group_id=group_id).order_by('pk')
-        serializer = TopicListSerializer(queryset, many=True)
-        return Response(serializer.data)
+        queryset1 = Topic.objects.filter(group_id=group_id).order_by('pk')
+        queryset2 = ChatRoom.objects.filter(group_id=group_id).order_by('pk')
+        serializer1 = TopicListSerializer(queryset1, many=True)
+        serializer2 = ChatRoomListSerializer(queryset2, many=True)
+
+        response_json_data = {
+            'topic_serializer': serializer1.data,
+            'chatroom_serializer': serializer2.data,
+        }
+        return Response(response_json_data)
 
 ##########################################################################
 
@@ -115,7 +126,7 @@ class TopicListViewSet(ModelViewSet):
         serializer = TopicListSerializer(queryset, many=True)  # 해당 group의 모든 topic_name을 가져온다
         return Response(serializer.data)
 
-    # list [POST] 해당 그룹의 토픽 생성
+    # list [POST] 해당 그룹의 토픽 생성, POST로 토픽 이름 설정
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -163,7 +174,7 @@ class TopicDetailViewSet(ModelViewSet):
         topic, created = Topic.objects.get_or_create(pk=topic_id)
         topic_serializer = TopicDetailSerializer(topic)
 
-        topic_message = topic.topic_messages.order_by('-created_time')[:100]
+        topic_message = topic.topic_messages.order_by('created_time')[:50]
         topic_message_serializer = TopicMessageSerializer(topic_message, many=True)
 
         # We want to show the last 100 messages, ordered most-recent-last
@@ -214,6 +225,177 @@ class TopicDetailViewSet(ModelViewSet):
         print("topic_id:" + str(topic_id))
 
         return Topic.objects.get(pk__in=topic_id)
+
+##########################################################################
+
+
+class ChatRoomListViewSet(ModelViewSet):
+    queryset = ChatRoom.objects.all()
+    serializer_class = ChatRoomListSerializer
+
+    # list [GET] 해당 그룹의 '자신이 속한' 채팅방 리스트 조회
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        group_id = self.kwargs['group_id']  # url에 있는 group_id를 가져온다
+        serializer = ChatRoomListSerializer(queryset, many=True)  # 해당 group의 모든 member를 가져온다
+        print(serializer.data)
+        chatrooms = ChatRoom.objects.filter(group=group_id).order_by("pk")
+        chatrooms_serializer = ChatRoomListSerializer(chatrooms, many=True)
+        print("[[ChatRoomListViewSet]] --- chatrooms")
+        print(chatrooms)
+        # print(chatrooms_serializer.data)
+        # print(chatrooms_serializer.data['chatRoomMember_name'])
+
+        return Response(serializer.data)
+
+    # queryset1 = Topic.objects.filter(group_id=group_id).order_by('pk')
+    #     queryset2 = ChatRoom.objects.filter(group_id=group_id).order_by('pk')
+    #     serializer1 = TopicListSerializer(queryset1, many=True)
+    #     serializer2 = ChatRoomListSerializer(queryset2, many=True)
+    # groups = Group.objects.filter(group_id=1).order_by("group_id")
+    # queryset = self.get_queryset()
+    # group = Group.objects.filter(group=group_id)
+    # qs = ChatRoom.objects.filter(group=group_id)
+    # user_id = self.kwargs['user_id']  # url에 있는 user_id를 가져온다
+    # print(user_id)
+    #
+    # if user_id is not None:
+    #     queryset = queryset.filter(user_id=user_id)  # user가 속한 group을 가져온다
+    #     qs = qs.filter(pk__in=queryset.values('group_id'))  # 해당 group의 name을 가져온다
+    #     serializer = GroupListSerializer(qs)
+    #     print(serializer.data)
+    #     return Response(serializer.data)
+
+
+
+
+    # list [POST] 해당 그룹의 채팅방 생성, POST로 채팅방의 멤버로 등록
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        self.perform_create(serializer)  # 채팅방을 생성
+
+        # 채팅방을 생성한 사람을 ChatRoomMember로 추가한다
+        creater_id = self.request.data['createrID']  # data in POST body
+        creater = User.objects.get(pk=creater_id)
+
+        chatRoom = ChatRoom.objects.get(pk=serializer.data['id'])  # serializer.data 사용
+        print("createrID: " + str(creater_id) + ", chatRoom: " + str(chatRoom))
+        chatroommember_serializer = ChatRoomMemberSerializer(data=self.request.data)
+        chatroommember_serializer.is_valid(raise_exception=True)
+        chatroommember_serializer.save(user=creater, chatRoom=chatRoom)
+        print("추가된 chatroommember")
+        print(serializer.get_chatRoomMember_name(chatRoom))  # 추가된 chatroommember dict
+
+        # TODO 생성한 채팅방을 다시 업데이트 (chatroommember을 적용하기 위해)
+
+        # print(serializer.get_chatRoomMember_name(chatRoom))  # 추가된 chatroommember dict
+        #
+        # self.update()
+        # if serializer.is_valid():
+        #     print("dddddddddddddddddddddddddd")
+        #     print(serializer.validated_data)
+        #     serializer.save(chatRoomMember_name=chatroommember_serializer)
+        #
+        # self.perform_create(serializer)
+        #
+        # print(serializer)
+        # self.perform_update(serializer)
+
+        headers = self.get_success_headers(serializer.data)
+        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+    # override
+    # url에 입력한 group_id에 해당하는 ChatRoom query set을 반환
+    def get_queryset(self):
+        group_id = self.kwargs['group_id']  # data in url
+        print("group_id:" + str(group_id))
+
+        return ChatRoom.objects.filter(group_id=group_id)
+
+    # override
+    # url에 입력한 group_id에 해당하는 ChatRoom 생성
+    # TODO (front: 초기 생성자 이름으로 방 이름을 세팅)
+    # TODO 채팅방 초대 기능 추가
+    def perform_create(self, serializer):
+        group_id = self.kwargs['group_id']  # data in url
+        print("group_id: " + str(group_id))
+        group = Group.objects.get(pk=group_id)
+
+        serializer.save(group=group)
+
+    def perform_update(self, serializer):
+        instance = serializer.save()
+        # chatRoom_id = serializer.data['id']
+        print(serializer.data)  # ChatRoomListSerializer
+        chatRoomMember = ChatRoomMember.objects.all()
+        print(chatRoomMember)
+
+        print("chatRoom_id: " + str(serializer.data['id']))
+        chatRoom = ChatRoom.objects.get(pk=serializer.data['id'])
+
+        print(chatRoom.chatRoomMembers)
+
+        serializer.save() #??
+
+
+class ChatRoomDetailViewSet(ModelViewSet):
+    queryset = ChatRoom.objects.all()
+    serializer_class = ChatRoomDetailSerializer
+
+    # detail [GET] 채팅방 안의 내용 및 파일정보 가져오기
+    def retrieve(self, request, *args, **kwargs):
+        """
+        Room view - show the topic, with latest topicmessages.
+        The template for this view has the WebSocket business to send and stream message,
+        so see the template for wherer the magic happens.
+        """
+        # If the room with the given topic_id doesn't exist, automatically create it
+        # upon first visit
+        chatroom_id = self.kwargs['chatroom_id']
+        print("chatroom_id: " + str(chatroom_id))
+
+        chatroom, created = ChatRoom.objects.get_or_create(pk=chatroom_id)
+        chatroom_serializer = ChatRoomDetailSerializer(chatroom)
+
+        chatroom_message = chatroom.chatRoomMessages.order_by('-created_time')[:50]
+        chatroom_message_serializer = ChatRoomMessageSerializer(chatroom_message, many=True)
+
+        # We want to show the last 50 messages, ordered most-recent-last
+        # topic_message = reversed(topic_message_serializer)
+
+        # url에 입력한 chatroom_id에 해당하는 Chatroom Serializer와 해당 chatroom의 기존 message들을 가져온다
+        response_json_data = {
+            'chatroom_serializer': chatroom_serializer.data,
+            'chatroom_message_serializer': chatroom_message_serializer.data,
+        }
+
+        return Response(response_json_data)
+
+    # detail [DELETE] 채팅방 삭제(기본 토픽은 삭제 불가)
+    # TODO ChatRoomMember에서 제거
+    def destroy(self, request, *args, **kwargs):
+        chatroom_id = self.kwargs['chatroom_id']
+        chatroom = self.get_object(chatroom_id)
+        chatroom.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    # override
+    # pk에 해당하는 ChatRoom obj를 반환
+    def get_object(self, pk):
+        try:
+            return ChatRoom.objects.get(pk=pk)
+        except ChatRoom.DoesNotExist:
+            raise Http404  ### TODO error 수정 필요
+
+    # override
+    # url에 입력한 chatroom_id에 해당하는 ChatRoom query set을 반환
+    def get_queryset(self):
+        chatroom_id = self.kwargs['chatroom_id']  # data in url
+        print("chatroom_id:" + str(chatroom_id))
+
+        return ChatRoom.objects.get(pk__in=chatroom_id)
 
 ##########################################################################
 

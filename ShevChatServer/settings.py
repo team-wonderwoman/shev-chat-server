@@ -37,6 +37,7 @@ CHANNEL_LAYERS = {
 }
 
 # ASGI_APPLICATION should be set to your outermost router
+# ASGI_APPLICATION = 'ShevChatServer.routing.application'
 ASGI_APPLICATION = 'ShevChatServer.routing.application'
 
 

@@ -86,26 +86,6 @@ class Topic(models.Model):
         print("============group_name============" + str(self.id))
         return "room-%s" % self.id
 
-    # @property
-    # def websocket_group(self):
-    #     """
-    #     Returns the Channels Group that sockets should subscribe to to get sent
-    #     messages as they are generated.
-    #     """
-    #     return channels.Group("room-%s" % self.id)  # channels group
-    #
-    # # 방에 join/leave하거나 message를 보낼 때 client에 전달하는 json data
-    # def send_message(self, message, user, msg_type=MSG_TYPE_MESSAGE):
-    #     """
-    #     Called to send a message to the room on behalf of a user.
-    #     """
-    #     final_msg = {'room': str(self.id), 'message': message, 'username': user.username, 'msg_type': msg_type}
-    #
-    #     # Send out the message to everyone in the room
-    #     self.websocket_group.send(
-    #         {"text": json.dumps(final_msg)}
-    #     )
-
 
 @python_2_unicode_compatible
 class TopicMember(models.Model):
@@ -161,6 +141,7 @@ class TopicMessage(models.Model):
 
 ##############################################################################################
 
+
 @python_2_unicode_compatible
 class ChatRoom(models.Model):
     """
@@ -177,7 +158,13 @@ class ChatRoom(models.Model):
         ordering = ['-created_time']
 
     def __str__(self):
-        return self.chatRoom_name
+        return '[{pk}] {group}'.format(**self.as_dict())
+
+    def as_dict(self):
+        return {
+            'pk': self.pk,
+            'group': self.group,
+        }
 
     @property
     def group_name(self):
@@ -189,11 +176,14 @@ class ChatRoom(models.Model):
         return "room-%s" % self.id
 
     # 해당 채팅방의 모든 ChatMember를 가져온다 (이 멤버들의 이름이 곧 채팅방의 이름)
-    def get_all_chatRoomMembers(self):
-        return self.chatRoomMembers.all()
+    def get_chatRoomMembers(self):
+        queryset = self.chatRoomMembers.filter(chatRoom=self.pk)
+        return queryset
 
     # 해당 채팅방의 모든 Messages를 가져온다
-    def get_all_messages(self):
+    def get_messages(self):
+        print("ChatRoom -- get_all_messages")
+        print(self.chatRoomMessages.all())
         return self.chatRoomMessages.all()
 
 
@@ -217,6 +207,7 @@ class ChatRoomMember(models.Model):
             'user': self.user,
             'chatRoom': self.chatRoom,
         }
+
 
 @python_2_unicode_compatible
 class ChatRoomMessage(models.Model):

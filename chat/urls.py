@@ -5,11 +5,11 @@ from .views import (
     GroupListAPIView,
     GroupDetailAPIView,
 
-    # TopicListAPIView,
-    # TopicDetailAPIView,
-
     TopicListViewSet,
     TopicDetailViewSet,
+
+    ChatRoomListViewSet,
+    ChatRoomDetailViewSet,
 
     FileUploadView
 )
@@ -25,6 +25,17 @@ topic_detail = TopicDetailViewSet.as_view({
     'delete': 'destroy'
 })
 
+chatRoom_list = ChatRoomListViewSet.as_view({
+    'get': 'list',
+    'post': 'create'
+})
+chatRoom_detail = ChatRoomDetailViewSet.as_view({
+    'get': 'retrieve',
+    # 'put': 'update',
+    # 'patch': 'partial_update',
+    'delete': 'destroy'
+})
+
 
 # API endpoints
 urlpatterns = format_suffix_patterns([
@@ -36,19 +47,25 @@ urlpatterns = format_suffix_patterns([
     # 사용자 그룹의 Topic과 Chat list를 반환한다
     url(r'^(?P<user_id>\d+)/(?P<group_id>\d+)/$', GroupDetailAPIView.as_view(), name='group_detail'),
 
+    ###########################################################################################
+
     # api/group/:group_id/topics [GET][POST]
     url(r'^(?P<group_id>\d+)/topics/$', topic_list, name='topic_list'),
 
     # api/group/:group_id/topics/:topic_id [GET][PUT][DELETE]
     url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)/$', topic_detail, name='topic_detail'),
 
+    ###########################################################################################
+
+    # api/group/:group_id/chatrooms [GET][POST]
+    url(r'^(?P<group_id>\d+)/chatrooms/$', chatRoom_list, name='chatRoom_list'),
+
+    # api/group/:group_id/chatrooms/:chatroom_id [GET][DELETE]
+    url(r'^(?P<group_id>\d+)/chatrooms/(?P<chatroom_id>\d+)/$', chatRoom_detail, name='chatRoom_detail'),
+
+    ###########################################################################################
+
     # api/group/fileupload
     url(r'^fileupload/$', FileUploadView.as_view())
     # url(r'^upload/(?P<filename>[^/]+)$', FileUploadView.as_view())
-
-    # # api/group/:group_id/topics [GET][POST]
-    # url(r'^(?P<group_id>\d+)/topics/$', TopicListAPIView.as_view(), name='topic_list'),
-    #
-    # # api/group/:group_id/topics/:topic_id [GET][PUT][DELETE]
-    # url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)$', TopicDetailAPIView.as_view(), name='topic_detail'),
 ])
