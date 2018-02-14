@@ -5,11 +5,15 @@ from .views import (
     GroupListAPIView,
     GroupInviteAPIView,
     GroupJoinAPIView,
-    # TopicListAPIView,
-    # TopicDetailAPIView,
+    GroupDetailAPIView,
+    GroupDeleteAPIView,
+    GroupExitAPIView,
+    GroupMemberAPIView,
 
     TopicListViewSet,
-    TopicDetailViewSet
+    TopicDetailViewSet,
+
+    FileUploadView
 )
 
 topic_list = TopicListViewSet.as_view({
@@ -30,11 +34,23 @@ urlpatterns = format_suffix_patterns([
     # 사용자의 그룹 리스트를 보여준다
     url(r'^(?P<user_id>\d+)/$', GroupListAPIView.as_view(), name='group_list'),
 
+    # api/group/:group_id/members
+    # 사용자가 속한 그룹의 멤버를 보여준다
+    url(r'^(?P<group_id>\d+)/members/$', GroupMemberAPIView.as_view(), name='group_members'),
+
+    # api/group/:user_id/:group_id
+    # 사용자 그룹의 Topic과 Chat list를 반환한다
+    url(r'^(?P<user_id>\d+)/(?P<group_id>\d+)/$', GroupDetailAPIView.as_view(), name='group_detail'),
+
     # api/group/:group_id/topics [GET][POST]
     url(r'^(?P<group_id>\d+)/topics/$', topic_list, name='topic_list'),
 
     # api/group/:group_id/topics/:topic_id [GET][PUT][DELETE]
-    url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)$', topic_detail, name='topic_detail'),
+    url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)/$', topic_detail, name='topic_detail'),
+
+    # api/group/fileupload
+    url(r'^fileupload/$', FileUploadView.as_view()),
+    # url(r'^upload/(?P<filename>[^/]+)$', FileUploadView.as_view())
 
     # # api/group/:group_id/topics [GET][POST]
     # url(r'^(?P<group_id>\d+)/topics/$', TopicListAPIView.as_view(), name='topic_list'),
@@ -47,4 +63,10 @@ urlpatterns = format_suffix_patterns([
 
     # api/group/join/:uid64/:verify_token [GET]
     url(r'^join/(?P<uid64>[0-9A-Za-z_\-]+)/(?P<verify_token>[0-9A-Za-z]+)/$',GroupJoinAPIView.as_view(), name='group_join'),
+
+    # api/group/:user_id/delete/ [DELETE]
+    url(r'^(?P<user_id>\d+)/(?P<group_id>\d+)/delete/$', GroupDeleteAPIView.as_view(), name='group_delete'),
+
+    # api/group/:user_id/exit/ [DELETE]
+    url(r'^(?P<user_id>\d+)/(?P<group_id>\d+)/exit/$', GroupExitAPIView.as_view(), name='group_exit'),
 ])

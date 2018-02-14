@@ -15,9 +15,9 @@ from email.mime.application import MIMEApplication
 from common.const import const_value
 from AuthSer.redis import redis_set
 
-def create_verify_token(group_name,query):
+def create_verify_token(groupId,query):
     payload = {
-        'group_name' : group_name,
+        'group_id' : groupId,
         'user_email': query.user_email,
         'user_name': query.user_name,
         'datetime': datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
@@ -37,11 +37,11 @@ def decode_verify_token(encoded_verify_token):
     print("decoded_verify_token 함수")
     print(decoded_token)
 
-    return decoded_token['group_name']
+    return decoded_token['group_id']
 
 
 # 그룹 초대 링크 이메일 보내는 함수
-def send_verification_mail(group_name, participants, queryset):
+def send_verification_mail(groupId, participants, queryset):
     #password = getpass.getpass('Password : ')
     password = 'roqkfwk1234'
     print("password? : "+password)
@@ -49,7 +49,7 @@ def send_verification_mail(group_name, participants, queryset):
     #print(request.data)
     # 그룹 이름
     #group_name = request.data['group_name']
-    print("send_verification_mail_group_name : " + group_name)
+    print("send_verification_mail_group_name : " + str(groupId))
     # 그룹 참여자의 이메일
     #participants = request.data['members']
     print("send_verification_mail_participants : ",end='')
@@ -62,7 +62,7 @@ def send_verification_mail(group_name, participants, queryset):
 
 
     uid = str(urlsafe_base64_encode(force_bytes(queryset.id)),'utf-8')
-    verify_token = str(urlsafe_base64_encode(force_bytes(create_verify_token(group_name,queryset))),'utf-8')
+    verify_token = str(urlsafe_base64_encode(force_bytes(create_verify_token(groupId,queryset))),'utf-8')
 
     print(uid)
     print(verify_token)
@@ -72,9 +72,11 @@ def send_verification_mail(group_name, participants, queryset):
     print("링크는?")
     print(link)
 
-    contents = """Hello, We are Shev! You are invited to {}.\n
-               If you want to participate {}, Please click the link below. {}\n               
-               """.format(group_name,group_name,link)
+    # contents = """Hello, We are Shev! \nYou are invited to {}.\n
+    #            If you want to participate {}, Please click the link below.\n\n{}
+    #            """.format(group_name,group_name,link)
+
+    contents  = """Hello \n{}""".format(link)
 
     message.set_content(contents)
 
@@ -103,8 +105,8 @@ def send_registration_mail(self, serializer):
     link = const_value['CONFIRMATION_LINK']
 
     contents = """Hello, {}!\n We are Shev! Thanks to register in Shev.\n
-               You are allowed to use our service right after click the link below. {}\n
-               I hope you enjoy shev! Thank you.\n
+               You are allowed to use our service right after click the link below.\n\n{}
+               I hope you enjoy shev!\nThank you.\n
                """.format(self.serializer.data['user_name'], const_value['CONFIRMATION_LINK'])
 
     message.set_content(contents)
