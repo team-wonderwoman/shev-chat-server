@@ -98,16 +98,25 @@ class GroupDetailAPIView(APIView):
     def get(self, *args, **kwargs):
         print("groupdetailapiview")
         group_id = self.kwargs['group_id']
-        queryset1 = Topic.objects.filter(group_id=group_id).order_by('pk')
-        queryset2 = ChatRoom.objects.filter(group_id=group_id).order_by('pk')
-        serializer1 = TopicListSerializer(queryset1, many=True)
-        serializer2 = ChatRoomListSerializer(queryset2, many=True)
+        user_id = self.kwargs['user_id']
 
-        response_json_data = {
-            'topic_serializer': serializer1.data,
-            'chatroom_serializer': serializer2.data,
-        }
-        return Response(response_json_data)
+        if user_id is not None:
+            topic_queryset = Topic.objects.filter(group_id=group_id).order_by('pk')
+            serializer1 = TopicListSerializer(topic_queryset, many=True)
+
+            # ChatRoomMember에서 해당 사용자가 속한 ChatRoomMember query를 가져온다
+            chatRoomMember_queryset = ChatRoomMember.objects.filter(user=user_id)  # user가 속한 chatroom을 가져온다
+            # ChatRoomMember query에서 ChatRoom pk를 이용해 해당 ChatRoom query를 모두 가져온다
+            # 해당 ChatRoom에서 user가 현재 들어온 group에 속한 ChatRoom만을 반환한다
+            chatRoom_queryset = ChatRoom.objects.filter(pk__in=chatRoomMember_queryset.values('chatRoom'),
+                                                        group=group_id)
+            serializer2 = ChatRoomListSerializer(chatRoom_queryset, many=True)  # 자신이 속한 chatRoom를 가져온다
+
+            response_json_data = {
+                'topic_serializer': serializer1.data,
+                'chatroom_serializer': serializer2.data,
+            }
+            return Response(response_json_data)
 
 ##########################################################################
 
@@ -229,45 +238,33 @@ class ChatRoomListViewSet(ModelViewSet):
     queryset = ChatRoom.objects.all()
     serializer_class = ChatRoomListSerializer
 
-    # list [GET] 해당 그룹의 '자신이 속한' 채팅방 리스트 조회
+    # list [GET] 해당 그룹의 채팅방 리스트 모두 조회
     def list(self, request, *args, **kwargs):
-        # user_id = self.kwargs['user_id']  # url에 있는 user_id를 가져온다
-        user_id = 1  # TODO
-        group_id = self.kwargs['group_id']  # url에 있는 group_id를 가져온다
-        print("user_id: " + str(user_id) + ", group_id: " + str(group_id))
+        queryset = self.get_queryset()
+        serializer = ChatRoomListSerializer(queryset, many=True)  # 해당 group의 모든 member를 가져온다
+        print(serializer.data)
+        print("[[ChatRoomListViewSet]] --- chatrooms")
+        return Response(serializer.data)
 
-        if user_id is not None:
-            # ChatRoomMember에서 해당 사용자가 속한 ChatRoomMember query를 가져온다
-            chatRoomMember_queryset = ChatRoomMember.objects.filter(user=user_id)  # user가 속한 chatroom을 가져온다
-
-            # ChatRoomMember query에서 ChatRoom pk를 이용해 해당 ChatRoom query를 모두 가져온다
-            # 해당 ChatRoom에서 user가 현재 들어온 group에 속한 ChatRoom만을 반환한다
-            chatRoom_queryset = ChatRoom.objects.filter(pk__in=chatRoomMember_queryset.values('chatRoom'), group=group_id)
-
-            serializer = ChatRoomListSerializer(chatRoom_queryset, many=True)  # 자신이 속한 chatRoom를 가져온다
-            return Response(serializer.data)
-
-    # list [POST] 해당 그룹의 채팅방 생성, POST로 채팅방의 멤버로 등록
+    # list [POST] 해당 그룹의 채팅방 생성, POST로 받아온 participants를 채팅방의 멤버로 등록
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
 
         self.perform_create(serializer)  # 채팅방을 생성
 
-        # 채팅방을 생성한 사람을 ChatRoomMember로 추가한다
-        creater_id = self.request.data['createrID']  # data in POST body
-        creater = User.objects.get(pk=creater_id)
-
+        # participants를 ChatRoomMember로 추가한다
+        # participants가 같은 그룹에 속해있으면 채팅방에 초대한다 (front에서 처리 가능)
+        participants_id = self.request.data['participants']  # data in POST body (list)
+        participants = User.objects.filter(pk__in=participants_id)  # (queryset)
         chatRoom = ChatRoom.objects.get(pk=serializer.data['id'])  # serializer.data 사용
-        print("createrID: " + str(creater_id) + ", chatRoom: " + str(chatRoom))
-        chatroommember_serializer = ChatRoomMemberSerializer(data=self.request.data)
-        chatroommember_serializer.is_valid(raise_exception=True)
-        chatroommember_serializer.save(user=creater, chatRoom=chatRoom)
-        print("추가된 chatroommember")
-        print(serializer.get_chatRoomMember_name(chatRoom))  # 추가된 chatroommember dict
+        print("participants: " + str(participants) + ", chatRoom: " + str(chatRoom))
+
+        for participant in participants:
+            ChatRoomMember.objects.create(user=participant, chatRoom=chatRoom)
+
 
         # TODO 생성한 채팅방을 다시 업데이트 (chatroommember을 적용하기 위해)
-
         # print(serializer.get_chatRoomMember_name(chatRoom))  # 추가된 chatroommember dict
         #
         # self.update()
@@ -374,6 +371,81 @@ class ChatRoomDetailViewSet(ModelViewSet):
         print("chatroom_id:" + str(chatroom_id))
 
         return ChatRoom.objects.get(pk__in=chatroom_id)
+
+
+# api/group/:group_id/chatrooms/:chatroom_id/invitation
+# class ChatRoomInviteAPIView(ListAPIView):
+#
+#     # [POST] 그룹에 멤버 초대
+#     def post(self, request, *args, **kwargs):
+#         participants_id = self.kwargs['participants'] # post body안의 초대할 그룹 멤버들의 pk
+#
+#         # DB에서 그룹 참여자 pk 가져오기
+#         try:
+#             participants = User.objects.filter(pk=participants_id)
+#             chatRoom_queryset = ChatRoom.objects.get(
+
+#             qs = Group.objects.get(group_name=group_name)
+#             print("qs는?")
+#             print(qs.id)
+#             request.data['group_id'] = qs.id
+#             request.data['user_id'] = queryset.id
+#             request.data['is_active'] = False
+#
+#         except queryset is None:
+#             return Response({'result': status_code['GROUP_INVITATION_FAILURE'], 'result': request.data},
+#                             status=status.HTTP_200_OK)
+
+
+#         participants = User.objects.filter(pk=participants_id)
+#         # participants가 같은 그룹에 속해있으면 채팅방에 초대한다 (front에서 처리 가능)
+#
+#         chatRoom = ChatRoom.objects.get(pk=serializer.data['id'])  # serializer.data 사용
+#         print("participants: " + str(participants) + ", chatRoom: " + str(chatRoom))
+#         chatroommember_serializer = ChatRoomMemberSerializer(data=self.request.data)
+#         chatroommember_serializer.is_valid(raise_exception=True)
+#         chatroommember_serializer.save(user=participants, chatRoom=chatRoom)
+#         print("추가된 chatroommember")
+#         print(serializer.get_chatRoomMember_name(chatRoom))  # 추가된 chatroommember dict
+#
+#         # 그룹 이름
+#         group_name = request.data['group_name']
+#         # 그룹 참여자의 이메일
+#         participants = request.data['members']
+#
+#         # 그룹 생성자 (현재 User의 pk)
+#         request.data['manager_id'] = int(userId)
+#
+#         # DB에서 그룹 참여자 pk 가져오기
+#         try:
+#             queryset = User.objects.get(user_email=participants)
+#             qs = Group.objects.get(group_name=group_name)
+#             print("qs는?")
+#             print(qs.id)
+#             request.data['group_id'] = qs.id
+#             request.data['user_id'] = queryset.id
+#             request.data['is_active'] = False
+#
+#         except queryset is None:
+#             return Response({'result': status_code['GROUP_INVITATION_FAILURE'], 'result': request.data},
+#                             status=status.HTTP_200_OK)
+#
+#         print(request.data)
+#
+#         # 이메일보내기
+#         send_verification_mail(group_name, participants, queryset)
+#
+#         print("이메일 보내기 완료")
+#
+#         serializer = GroupMemberModelSerializer(data=request.data)
+#         if serializer.is_valid():
+#             serializer.save()
+#             return Response({'result': status_code['GROUP_INVITATION_SUCCESS'], 'received_data': serializer.data},
+#                             status=status.HTTP_200_OK)
+#         else:
+#             return Response({'result': status_code['GROUP_INVITATION_FAILURE'], 'received_data': request.data},
+#                             status=status.HTTP_200_OK)
+
 
 ##########################################################################
 

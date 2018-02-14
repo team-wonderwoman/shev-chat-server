@@ -10,6 +10,7 @@ from .views import (
 
     ChatRoomListViewSet,
     ChatRoomDetailViewSet,
+    # ChatRoomInviteAPIView,
 
     FileUploadView
 )
@@ -63,7 +64,8 @@ urlpatterns = format_suffix_patterns([
     # api/group/:group_id/chatrooms/:chatroom_id [GET][DELETE]
     url(r'^(?P<group_id>\d+)/chatrooms/(?P<chatroom_id>\d+)/$', chatRoom_detail, name='chatRoom_detail'),
 
-
+    # api/group/:group_id/chatrooms/:chatroom_id/invitation [POST]
+    # url(r'^(?P<group_id>\d+)/chatrooms/(?P<chatroom_id>\d+)/invitation/$', ChatRoomInviteAPIView.as_view(), name='chatRoom_invitation'),
     ###########################################################################################
 
     # api/group/fileupload
