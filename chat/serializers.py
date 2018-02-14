@@ -15,16 +15,17 @@ from rest_framework.serializers import (
     HyperlinkedIdentityField
 )
 
+
 class GroupListSerializer(ModelSerializer):
     class Meta:
         model = Group
-        fields = ('id','group_name','manager_id', ) #__all__
+        fields = ('id', 'group_name', 'manager_id', )  #__all__
 
 
 class GroupMemberModelSerializer(ModelSerializer):
     class Meta:
         model = GroupMember
-        fields = ('id', 'group_id','user_id','is_active', ) #__all__
+        fields = ('id', 'group_id', 'user_id', 'is_active', )  #__all__
     #
     # def create(self, validated_data):
     #     group_id = validated_data.pop('group_id')
@@ -56,6 +57,12 @@ class TopicDetailSerializer(ModelSerializer):
     class Meta:
         model = Topic
         fields = ('id', 'topic_name', 'created_time')
+
+
+class TopicMemberSerializer(ModelSerializer):
+    class Meta:
+        model = TopicMember
+        fields = '__all__'  # user_id, topic_id
 
 
 class TopicMessageSerializer(ModelSerializer):

@@ -15,7 +15,7 @@ from .views import (
 
     ChatRoomListViewSet,
     ChatRoomDetailViewSet,
-    # ChatRoomInviteAPIView,
+    ChatRoomInviteAPIView,
 
     FileUploadView
 )
@@ -59,7 +59,7 @@ urlpatterns = format_suffix_patterns([
     url(r'^(?P<group_id>\d+)/(?P<user_id>\d+)/$', GroupDetailAPIView.as_view(), name='group_detail'),
 
     # api/group/:user_id/invitation [POST]
-    url(r'^(?P<user_id>\d+)/invitation/$',GroupInviteAPIView.as_view(), name='group_invite'),
+    url(r'^(?P<user_id>\d+)/invitation/$', GroupInviteAPIView.as_view(), name='group_invite'),
 
     # api/group/join/:uid64/:verify_token [GET]
     url(r'^join/(?P<uid64>[0-9A-Za-z_\-]+)/(?P<verify_token>[0-9A-Za-z]+)/$',GroupJoinAPIView.as_view(), name='group_join'),
@@ -87,7 +87,7 @@ urlpatterns = format_suffix_patterns([
     url(r'^(?P<group_id>\d+)/chatrooms/(?P<chatroom_id>\d+)/$', chatRoom_detail, name='chatRoom_detail'),
 
     # api/group/:group_id/chatrooms/:chatroom_id/invitation [POST]
-    # url(r'^(?P<group_id>\d+)/chatrooms/(?P<chatroom_id>\d+)/invitation/$', ChatRoomInviteAPIView.as_view(), name='chatRoom_invitation'),
+    url(r'^(?P<group_id>\d+)/chatrooms/(?P<chatroom_id>\d+)/invitation/$', ChatRoomInviteAPIView.as_view(), name='chatRoom_invitation'),
 
     ###########################################################################################
 

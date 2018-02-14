@@ -4,8 +4,8 @@ const_value = {
     'SESSION_EXIST' : 'Session_exist',
     'SESSION_CREATED' : 'Session_created',
     'TOKEN_DOES_NOT_EXIST' : 'Token does not exist',
-    'INVITATION_LINK' : 'http://192.168.0.24:9000/api/group/invitation/',
-    'PARTICIPATION_LINK': 'http://192.168.0.24:9000/api/group/join/',
+    'INVITATION_LINK' : 'http://192.168.0.33:9000/api/group/invitation/',
+    'PARTICIPATION_LINK': 'http://192.168.0.33:9000/api/group/join/',
     'CONFIRMATION_LINK' : 'http://192.168.0.24:8000/api/signup/',
 }
 

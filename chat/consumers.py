@@ -3,8 +3,9 @@ from django.conf import settings
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from .exceptions import ClientError
-from .utils import get_room_or_error, get_previous_messages
+from .utils import get_room_or_error, get_previous_messages, save_message
 from .models import Topic, TopicMessage
+
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     """
@@ -35,7 +36,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
         await self.accept()
         self.rooms = set()
-        await self.init_room()
+        # await self.init_room()
         # await self.send_room(content["room"], content["roomtype"], content["message"])
 
     async def receive_json(self, content):
@@ -55,7 +56,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 # Leave the room
                 await self.leave_room(content["room"], content["roomtype"])
             elif command == "send":
-                await self.send_room(content["room"], content["roomtype"], content["message"])
+                await self.send_room(content)
         except ClientError as e:
             # Catch any errors and send it back
             await self.send_json({"error": e.code})
@@ -94,7 +95,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
         # The logged-in user is in our scope thanks to the authentication ASGI middleware
         room = await get_room_or_error(room_pk, self.scope["user"], None)
-        messages = await get_previous_messages(room_pk, self.scope["user"], None)
+        messages = await get_previous_messages(room_pk, self.scope["user"], "topics")
 
         # Send a join message if it's turned on
         if settings.NOTIFY_USERS_ON_ENTER_OR_LEAVE_ROOMS:
@@ -184,22 +185,33 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             "leave": str(room.id),
         })
 
-    async def send_room(self, room_id, room_type, message):
+    async def send_room(self, content):
         """
         Called by receive_json when someone sends a message to a room.
         """
         print("============send_room============")
+        room_type = content['roomtype']
+        room_id = content['room']
+        sender_id = content['sender']
+        message = content['message']
+
         # Check they are in this room
         if room_id not in self.rooms:
             raise ClientError("ROOM_ACCESS_DENIED")
+
         # Get the room and send to the group about it
         room = await get_room_or_error(room_id, self.scope["user"], room_type)
+
+        # 받은 message를 저장한다
+        sender_name = await save_message(room_id, sender_id, room_type, message)
+
         await self.channel_layer.group_send(
             room.group_name,
             {
-                "type": "chat.message",
+                "type": "chat.message",  # call chat_message method
                 "room_id": room_id,
-                "username": self.scope["user"].username,
+                # "username": self.scope["user"].username,
+                "username": sender_name,
                 "message": message,
             }
         )
@@ -240,6 +252,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         Called when someone has messaged our chat.
         """
         print("============chat_message============")
+        print(type(self))
+        print(dir(self))
+        print(type(event))
+        print(dir(event))
         # Send a message down to the client
         await self.send_json(
             {
