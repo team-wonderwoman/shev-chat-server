@@ -2,8 +2,25 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="4fd61f7e-5e89-4e0f-915b-47e2404235bb" name="Default" comment="">
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AuthSer/admin.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AuthSer/apps.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AuthSer/redis.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AuthSer/serializers.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AuthSer/tests.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/AuthSer/views.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/chat/sendmail.py" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/common/const.py" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/chat/migrations/0001_initial.py" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/chat/migrations/0002_chatroom_chatroommember_chatroommessage.py" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/chat/migrations/__init__.py" afterPath="$PROJECT_DIR$/AuthSer/__init__.py" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/shevauthserver/models.py" afterPath="$PROJECT_DIR$/AuthSer/models.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/ShevChatServer/settings.py" afterPath="$PROJECT_DIR$/ShevChatServer/settings.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/chat/admin.py" afterPath="$PROJECT_DIR$/chat/admin.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/chat/models.py" afterPath="$PROJECT_DIR$/chat/models.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/chat/serializers.py" afterPath="$PROJECT_DIR$/chat/serializers.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/chat/urls.py" afterPath="$PROJECT_DIR$/chat/urls.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/chat/views.py" afterPath="$PROJECT_DIR$/chat/views.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/requirements.txt" afterPath="$PROJECT_DIR$/requirements.txt" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -35,8 +52,8 @@
           <file leaf-file-name="serializers.py" pinned="false" current-in-tab="true">
             <entry file="file://$PROJECT_DIR$/chat/serializers.py">
               <provider selected="true" editor-type-id="text-editor">
-                <state relative-caret-position="272">
-                  <caret line="61" column="31" lean-forward="true" selection-start-line="61" selection-start-column="31" selection-end-line="61" selection-end-column="31" />
+                <state relative-caret-position="407">
+                  <caret line="88" column="16" lean-forward="false" selection-start-line="88" selection-start-column="16" selection-end-line="88" selection-end-column="16" />
                   <folding />
                 </state>
               </provider>
@@ -45,14 +62,14 @@
         </leaf>
       </split-first>
       <split-second>
-        <splitter split-orientation="horizontal" split-proportion="0.4573894">
+        <splitter split-orientation="horizontal" split-proportion="0.24056095">
           <split-first>
             <leaf>
               <file leaf-file-name="views.py" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/chat/views.py">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="580">
-                      <caret line="263" column="36" lean-forward="true" selection-start-line="263" selection-start-column="36" selection-end-line="263" selection-end-column="36" />
+                    <state relative-caret-position="4195">
+                      <caret line="504" column="24" lean-forward="false" selection-start-line="504" selection-start-column="24" selection-end-line="504" selection-end-column="24" />
                       <folding />
                     </state>
                   </provider>
@@ -62,21 +79,21 @@
           </split-first>
           <split-second>
             <leaf>
-              <file leaf-file-name="models.py" pinned="false" current-in-tab="true">
+              <file leaf-file-name="models.py" pinned="false" current-in-tab="false">
                 <entry file="file://$PROJECT_DIR$/chat/models.py">
                   <provider selected="true" editor-type-id="text-editor">
                     <state relative-caret-position="474">
-                      <caret line="214" column="12" lean-forward="false" selection-start-line="214" selection-start-column="12" selection-end-line="214" selection-end-column="12" />
+                      <caret line="211" column="12" lean-forward="false" selection-start-line="211" selection-start-column="12" selection-end-line="211" selection-end-column="12" />
                       <folding />
                     </state>
                   </provider>
                 </entry>
               </file>
-              <file leaf-file-name="urls.py" pinned="false" current-in-tab="false">
+              <file leaf-file-name="urls.py" pinned="false" current-in-tab="true">
                 <entry file="file://$PROJECT_DIR$/chat/urls.py">
                   <provider selected="true" editor-type-id="text-editor">
-                    <state relative-caret-position="144">
-                      <caret line="38" column="0" lean-forward="true" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
+                    <state relative-caret-position="557">
+                      <caret line="89" column="23" lean-forward="false" selection-start-line="89" selection-start-column="23" selection-end-line="89" selection-end-column="23" />
                       <folding />
                     </state>
                   </provider>
@@ -86,7 +103,7 @@
                 <entry file="file://$PROJECT_DIR$/chat/consumers.py">
                   <provider selected="true" editor-type-id="text-editor">
                     <state relative-caret-position="868">
-                      <caret line="85" column="0" lean-forward="true" selection-start-line="85" selection-start-column="0" selection-end-line="85" selection-end-column="0" />
+                      <caret line="85" column="0" lean-forward="false" selection-start-line="85" selection-start-column="0" selection-end-line="85" selection-end-column="0" />
                       <folding />
                     </state>
                   </provider>
@@ -155,12 +172,12 @@
         <option value="$USER_HOME$/.pyenv/versions/shev-chat/lib/python3.6/site-packages/channels/consumer.py" />
         <option value="$PROJECT_DIR$/chat/admin.py" />
         <option value="$PROJECT_DIR$/chat/models.py" />
-        <option value="$PROJECT_DIR$/chat/serializers.py" />
         <option value="$PROJECT_DIR$/chat/consumers.py" />
         <option value="$PROJECT_DIR$/chat/utils.py" />
         <option value="$PROJECT_DIR$/ShevChatServer/settings.py" />
-        <option value="$PROJECT_DIR$/chat/urls.py" />
         <option value="$PROJECT_DIR$/chat/views.py" />
+        <option value="$PROJECT_DIR$/chat/serializers.py" />
+        <option value="$PROJECT_DIR$/chat/urls.py" />
       </list>
     </option>
   </component>
@@ -366,12 +383,12 @@
       <breakpoints>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/chat/serializers.py</url>
-          <line>25</line>
+          <line>41</line>
           <option name="timeStamp" value="3" />
         </line-breakpoint>
         <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
           <url>file://$PROJECT_DIR$/chat/serializers.py</url>
-          <line>51</line>
+          <line>68</line>
           <option name="timeStamp" value="4" />
         </line-breakpoint>
       </breakpoints>
@@ -741,26 +758,26 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/chat/urls.py">
+    <entry file="file://$PROJECT_DIR$/chat/consumers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="144">
-          <caret line="38" column="0" lean-forward="true" selection-start-line="38" selection-start-column="0" selection-end-line="38" selection-end-column="0" />
+        <state relative-caret-position="868">
+          <caret line="85" column="0" lean-forward="false" selection-start-line="85" selection-start-column="0" selection-end-line="85" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/chat/consumers.py">
+    <entry file="file://$PROJECT_DIR$/chat/views.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="868">
-          <caret line="85" column="0" lean-forward="true" selection-start-line="85" selection-start-column="0" selection-end-line="85" selection-end-column="0" />
+        <state relative-caret-position="4195">
+          <caret line="504" column="24" lean-forward="false" selection-start-line="504" selection-start-column="24" selection-end-line="504" selection-end-column="24" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/chat/serializers.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="272">
-          <caret line="61" column="31" lean-forward="true" selection-start-line="61" selection-start-column="31" selection-end-line="61" selection-end-column="31" />
+        <state relative-caret-position="407">
+          <caret line="88" column="16" lean-forward="false" selection-start-line="88" selection-start-column="16" selection-end-line="88" selection-end-column="16" />
           <folding />
         </state>
       </provider>
@@ -768,15 +785,15 @@
     <entry file="file://$PROJECT_DIR$/chat/models.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="474">
-          <caret line="214" column="12" lean-forward="false" selection-start-line="214" selection-start-column="12" selection-end-line="214" selection-end-column="12" />
+          <caret line="211" column="12" lean-forward="false" selection-start-line="211" selection-start-column="12" selection-end-line="211" selection-end-column="12" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/chat/views.py">
+    <entry file="file://$PROJECT_DIR$/chat/urls.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="580">
-          <caret line="263" column="36" lean-forward="true" selection-start-line="263" selection-start-column="36" selection-end-line="263" selection-end-column="36" />
+        <state relative-caret-position="557">
+          <caret line="89" column="23" lean-forward="false" selection-start-line="89" selection-start-column="23" selection-end-line="89" selection-end-column="23" />
           <folding />
         </state>
       </provider>

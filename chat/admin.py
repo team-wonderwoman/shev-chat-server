@@ -4,7 +4,7 @@ from .models import (
     ChatRoom, ChatRoomMember, ChatRoomMessage,
     Topic, TopicMember, TopicMessage
 )
-from shevauthserver.models import User
+from AuthSer.models import User
 
 admin.site.register(User)
 

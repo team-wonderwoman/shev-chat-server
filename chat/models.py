@@ -2,28 +2,28 @@ import json
 from django.db import models
 from django.utils.six import python_2_unicode_compatible
 
+from AuthSer.models import User
+
 import channels
-
-from shevauthserver.models import User
 from .settings import MSG_TYPE_MESSAGE
-
 
 # TODO group app 으로 이동
 class Group(models.Model):
     group_name = models.CharField(max_length=50, null=False)  # group_name 입력은 필수로 한다.
-    members = models.ManyToManyField(
+
+    manager_id = models.ForeignKey(
         User,
-        related_name="groups",
-        through='GroupMember',
-        through_fields=('group_id', 'user_id')
+        related_name="groupManagers",
+        on_delete=models.CASCADE,
+        null=False
     )
 
     class Meta:
         verbose_name = "group"
         verbose_name_plural = "groups"
 
-    def __str__(self):
-        return self.group_name
+    # def __str__(self):
+    #    return self.group_name
 
     # # 이 그룹의 모든 토픽을 가져온다.
     # def get_topic(self):
@@ -45,11 +45,9 @@ class GroupMember(models.Model):
         related_name="groupMembers",
         on_delete=models.CASCADE
     )
-    manager_id = models.ForeignKey(
-        User,
-        related_name="groupManagers",
-        on_delete=models.CASCADE,
-        null=False
+    is_active = models.BooleanField(
+        null=False,
+        default=False
     )
 
     def __str__(self):
@@ -140,7 +138,6 @@ class TopicMessage(models.Model):
         }
 
 ##############################################################################################
-
 
 @python_2_unicode_compatible
 class ChatRoom(models.Model):

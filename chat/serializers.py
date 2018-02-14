@@ -1,9 +1,13 @@
+from rest_framework import serializers
 from .models import Group, GroupMember
+
+# from .models import ChatRoom, ChatMember, Message
+from AuthSer.models import User
+
 from .models import Topic, TopicMessage, TopicMember
 from .models import ChatRoom, ChatRoomMember, ChatRoomMessage
-from shevauthserver.models import User
-
 from rest_framework.renderers import JSONRenderer
+
 from rest_framework.serializers import (
     ModelSerializer,
     SerializerMethodField,
@@ -11,11 +15,24 @@ from rest_framework.serializers import (
     HyperlinkedIdentityField
 )
 
-
 class GroupListSerializer(ModelSerializer):
     class Meta:
         model = Group
-        fields = ('group_name', )
+        fields = ('id','group_name','manager_id', ) #__all__
+
+
+class GroupMemberModelSerializer(ModelSerializer):
+    class Meta:
+        model = GroupMember
+        fields = ('id', 'group_id','user_id','is_active', ) #__all__
+    #
+    # def create(self, validated_data):
+    #     group_id = validated_data.pop('group_id')
+    #     members = validated_data.pop('members')
+    #     user_id = validated_data.pop('user_id')
+    #     is_active = validated_data.pop('is_active')
+    #     group_member = GroupMember.objects.create(**validated_data)
+    #     return group_member
 
 
 ####################################################################
@@ -50,6 +67,7 @@ class TopicMessageSerializer(ModelSerializer):
 
     def get_sender(self, obj):
         return obj.user_id.user_name
+
 
 ####################################################################
 
