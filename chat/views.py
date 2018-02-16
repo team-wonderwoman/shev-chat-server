@@ -28,7 +28,7 @@ from .serializers import (
     TopicListSerializer,
     TopicDetailSerializer,
     TopicMessageSerializer,
-    TopicMemberSerializer,
+    # TopicMemberSerializer,
 
     ChatRoomListSerializer,
     ChatRoomDetailSerializer,
@@ -120,8 +120,8 @@ class GroupListAPIView(ListAPIView):
         return queryset
 
     # group [POST] 새로운 그룹 생성
-    def post(self, request , *args, **kwargs):
-        userId = int(self.kwargs['user_id']) # url에 있는 user_id를 가져옴
+    def post(self, request, *args, **kwargs):
+        userId = int(self.kwargs['user_id'])  # url에 있는 user_id를 가져옴
 
         # manager_id를 현재 User의 pk로 지정 (그룹 생성자)
         request.data['manager_id'] = userId
@@ -147,11 +147,19 @@ class GroupListAPIView(ListAPIView):
         print("serializer_member")
         print(request.data)
 
-        try:  # GroupMember 테이블에 request.data 저장 & TopicMember 테이블도 똑같이 동기화
+        # default로 Topic("공지사항이라는 이름으로 삭제 불가")을 하나 생성한다.
+        try:
+            group_id = serializer.data['id']
+            group = Group.objects.get(pk=group_id)
+            Topic.objects.create(topic_name='공지사항', group_id=group)
+        except:
+            status_code['GROUP_MADE_FAILURE']['data'] = request.data
+            return Response({'result': status_code['GROUP_MADE_FAILURE']}, status=status.HTTP_200_OK)
+
+        # GroupMember 테이블에 request.data 저장
+        try:
             serializer_member = GroupMemberModelSerializer(data=request.data)
             serializer_member.is_valid(raise_exception=True)
-
-            # serializer_topic_member = TopicMemberSerializer
 
             print("serializer_member valid??")
             serializer_member.save()

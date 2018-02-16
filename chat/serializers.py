@@ -4,7 +4,7 @@ from .models import Group, GroupMember
 # from .models import ChatRoom, ChatMember, Message
 from AuthSer.models import User
 
-from .models import Topic, TopicMessage, TopicMember
+from .models import Topic, TopicMessage
 from .models import ChatRoom, ChatRoomMember, ChatRoomMessage
 from rest_framework.renderers import JSONRenderer
 
@@ -59,10 +59,10 @@ class TopicDetailSerializer(ModelSerializer):
         fields = ('id', 'topic_name', 'created_time')
 
 
-class TopicMemberSerializer(ModelSerializer):
-    class Meta:
-        model = TopicMember
-        fields = '__all__'  # user_id, topic_id
+# class TopicMemberSerializer(ModelSerializer):
+#     class Meta:
+#         model = TopicMember
+#         fields = '__all__'  # user_id, topic_id
 
 
 class TopicMessageSerializer(ModelSerializer):

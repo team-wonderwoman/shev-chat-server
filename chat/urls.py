@@ -47,7 +47,7 @@ chatRoom_detail = ChatRoomDetailViewSet.as_view({
 # API endpoints
 urlpatterns = format_suffix_patterns([
     # api/group/:user_id
-    # 사용자의 그룹 리스트를 보여준다
+    # 사용자의 그룹 리스트를 보여준다, 그룹을 생성한다
     url(r'^(?P<user_id>\d+)/$', GroupListAPIView.as_view(), name='group_list'),
 
     # api/group/:group_id/members

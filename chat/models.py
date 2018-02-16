@@ -7,7 +7,7 @@ from AuthSer.models import User
 import channels
 from .settings import MSG_TYPE_MESSAGE
 
-# TODO group app 으로 이동
+
 class Group(models.Model):
     group_name = models.CharField(max_length=50, null=False)  # group_name 입력은 필수로 한다.
 
@@ -22,15 +22,14 @@ class Group(models.Model):
         verbose_name = "group"
         verbose_name_plural = "groups"
 
-    # def __str__(self):
-    #    return self.group_name
+    def __str__(self):
+       return str(self.group_name)
 
     # # 이 그룹의 모든 토픽을 가져온다.
     # def get_topic(self):
     #     return self.topics.all()
 
 
-# TODO group app 으로 이동
 class GroupMember(models.Model):
     """
     어떤 그룹에 어떤 사용자가 있는지
@@ -70,7 +69,7 @@ class Topic(models.Model):
     created_time = models.DateTimeField('Create Time', auto_now_add=True)
 
     class Meta:
-        ordering = ['-created_time']
+        ordering = ['created_time']
 
     def __str__(self):
         return self.topic_name
@@ -85,26 +84,26 @@ class Topic(models.Model):
         return "room-%s" % self.id
 
 
-@python_2_unicode_compatible
-class TopicMember(models.Model):
-    user_id = models.ForeignKey(
-        User,
-        related_name="topics"
-    )
-    topic_id = models.ForeignKey(
-        Topic,
-        related_name="topics"
-    )
-    created_time = models.DateTimeField('Create Time', auto_now_add=True)
-
-    def __str__(self):
-        return '[{user_id}] {topic_id}'.format(**self.as_dict())
-
-    def as_dict(self):
-        return {
-            'user_id': self.user_id,
-            'topic_id': self.topic_id,
-        }
+# @python_2_unicode_compatible
+# class TopicMember(models.Model):
+#     user_id = models.ForeignKey(
+#         User,
+#         related_name="topics"
+#     )
+#     topic_id = models.ForeignKey(
+#         Topic,
+#         related_name="topics"
+#     )
+#     created_time = models.DateTimeField('Create Time', auto_now_add=True)
+#
+#     def __str__(self):
+#         return '[{user_id}] {topic_id}'.format(**self.as_dict())
+#
+#     def as_dict(self):
+#         return {
+#             'user_id': self.user_id,
+#             'topic_id': self.topic_id,
+#         }
 
 
 @python_2_unicode_compatible
