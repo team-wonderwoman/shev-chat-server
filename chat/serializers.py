@@ -4,8 +4,12 @@ from .models import Group, GroupMember
 # from .models import ChatRoom, ChatMember, Message
 from AuthSer.models import User
 
-from .models import Topic, TopicMessage
-from .models import ChatRoom, ChatRoomMember, ChatRoomMessage
+from .models import (
+    Topic, TopicMessage,
+    TopicFile,
+    ChatRoom, ChatRoomMember, ChatRoomMessage,
+
+)
 from rest_framework.renderers import JSONRenderer
 
 from rest_framework.serializers import (
@@ -70,7 +74,7 @@ class TopicMessageSerializer(ModelSerializer):
 
     class Meta:
         model = TopicMessage
-        fields = ('sender', 'topic_id', 'contents', 'created_time')
+        fields = '__all__'
 
     def get_sender(self, obj):
         return obj.user_id.user_name
@@ -137,3 +141,23 @@ class ChatRoomMessageSerializer(ModelSerializer):
 
     def get_sender(self, obj):
         return obj.user.user_name
+
+
+####################################################################
+
+class TopicFileUploadSerializer(ModelSerializer):
+    # sender = SerializerMethodField()
+
+    # user = serializers.SlugRelatedField(
+    #     read_only=True,
+    #     slug_field='id'
+    # )
+
+    class Meta:
+        model = TopicFile
+        fields = ('user', 'message', 'file')
+        # fields = ('user', 'file', )
+        read_only_fields = ('created_time', )
+
+    # def get_sender(self, obj):
+    #     return obj.user.user_name

@@ -135,24 +135,24 @@ WSGI_APPLICATION = 'ShevChatServer.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
 
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'shevdb', # DB명
-#         'USER' : 'yejin', # 데이터베이스 계정
-#         'PASSWORD' : 'yejin', # 비밀번호
-#         'HOST' : '192.168.0.24', # 데이터베이스 주소
-#         'PORT' : '3306', # 포트번호
-#     }
-# }
-
-# For TEST
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'shevdb', # DB명
+        'USER' : 'yejin', # 데이터베이스 계정
+        'PASSWORD' : 'yejin', # 비밀번호
+        'HOST' : '192.168.0.24', # 데이터베이스 주소
+        'PORT' : '3306', # 포트번호
     }
 }
+
+#
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.sqlite3',
+#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators
@@ -178,7 +178,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+# TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Seoul'
 
 USE_I18N = True
 
@@ -191,3 +192,11 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.11/howto/static-files/
 
 STATIC_URL = '/static/'
+
+# Media files (.jpeg, .png, .pdf etc)
+# MEDIA_ROOT = os.path.join(BASE_DIR, '..', 'uploaded_media')
+
+ENV_PATH = os.path.abspath(os.path.dirname(__file__))
+MEDIA_ROOT = os.path.join(ENV_PATH, 'media/')
+MEDIA_URL = '/media/'
+

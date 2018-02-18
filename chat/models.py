@@ -1,4 +1,5 @@
 import json
+import os
 from django.db import models
 from django.utils.six import python_2_unicode_compatible
 
@@ -116,7 +117,8 @@ class TopicMessage(models.Model):
         Topic,
         related_name="topic_messages"
     )
-    contents = models.TextField()  # 메시지 내용
+    contents = models.TextField()  # 메시지 내용, file이면 filaname
+    is_file = models.BooleanField(default=False)  # file이면 True
     created_time = models.DateTimeField('Create Time', auto_now_add=True)
 
     class Meta:
@@ -135,6 +137,27 @@ class TopicMessage(models.Model):
             'topic_id': self.topic_id,
             'created_time': self.formatted_created_time
         }
+
+
+@python_2_unicode_compatible
+class TopicFile(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name="topic_files"
+    )
+    message = models.ForeignKey(
+        TopicMessage,
+        related_name="topic_files"
+    )
+    file = models.FileField()
+    created_time = models.DateTimeField('Create Time', auto_now_add=True)
+
+    def get_filename(self):
+        filename = os.path.basename(self.file.name)
+        print("[[TopicFile]] get_filename")
+        print(filename)
+        return filename
+
 
 ##############################################################################################
 
@@ -235,3 +258,10 @@ class ChatRoomMessage(models.Model):
             'created_time': self.formatted_created_time
         }
 
+
+##############################################################################################
+
+# class File(models.Model):
+#   file = models.FileField(blank=False, null=False)
+#   remark = models.CharField(max_length=20)
+#   timestamp = models.DateTimeField(auto_now_add=True)

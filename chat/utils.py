@@ -100,11 +100,25 @@ def save_message(room_id, sender_id, room_type, message):
         if room_type == "topics":
             room = Topic.objects.get(pk=room_id)
             topicMessage = TopicMessage.objects.create(user_id=sender, topic_id=room, contents=message)
-            print(topicMessage)
+            messages_serializer = TopicMessageSerializer(topicMessage)
+
+            response_json_data = {
+                'sender_name': sender.user_name,
+                'messages_serializer': messages_serializer.data
+            }
+            print(response_json_data)
+
         elif room_type == "chatrooms":
             room = ChatRoom.objects.get(pk=room_id)
             chatRoomMessage = ChatRoomMessage.objects.create(user=sender, chatRoom=room, contents=message)
-            print(chatRoomMessage)
+            messages_serializer = ChatRoomMessageSerializer(chatRoomMessage)
+
+            response_json_data = {
+                'sender_name': sender.user_name,
+                'messages_serializer': messages_serializer.data
+            }
+            print(response_json_data)
+
             pass
         else:
             print("[[save_message]] error")
@@ -113,4 +127,5 @@ def save_message(room_id, sender_id, room_type, message):
     except ChatRoom.DoesNotExist:
         raise ClientError("Chat ROOM_INVALID")
 
-    return sender.user_name
+    return response_json_data
+
