@@ -427,10 +427,12 @@ class TopicDetailViewSet(ModelViewSet):
         print("topic_id: " + str(topic_id))
 
         topic, created = Topic.objects.get_or_create(pk=topic_id)
-        topic_serializer = TopicDetailSerializer(topic)
 
-        topic_message = topic.topic_messages.order_by('created_time')[:50]
-        topic_message_serializer = TopicMessageSerializer(topic_message, many=True)
+        try:
+            topic_serializer = TopicDetailSerializer(topic)
+
+            topic_message = topic.topic_messages.order_by('created_time')[:50]
+            topic_message_serializer = TopicMessageSerializer(topic_message, many=True)
 
         # We want to show the last 100 messages, ordered most-recent-last
         # topic_message = reversed(topic_message_serializer)
@@ -442,9 +444,11 @@ class TopicDetailViewSet(ModelViewSet):
         #     'topic_message_serializer': topic_message_serializer.data,
         # }
 
+            status_code['TOPIC_GET_DETAIL_SUCCESS']['data'] = {'topic_detail' : topic_serializer.data , 'topic_message' : topic_message_serializer.data}
+            return Response({'result' : status_code['TOPIC_GET_DETAIL_SUCCESS']}, status=status.HTTP_200_OK)
 
-        status_code['TOPIC_GET_DETAIL_SUCCESS']['data'] = {'topic_detail' : topic_serializer.data , 'topic_message' : topic_message_serializer.data}
-        return Response({'result' : status_code['TOPIC_GET_DETAIL_SUCCESS']}, status=status.HTTP_200_OK)
+        except:
+            return Response({'result' : status_code['TOPIC_GET_DETAIL_FAILURE']} , status=status.HTTP_200_OK)
 
     # detail [PUT] 토픽 이름 변경
     def update(self, request, *args, **kwargs):
@@ -456,6 +460,7 @@ class TopicDetailViewSet(ModelViewSet):
             data=request.data,
             partial=True
         )
+
         if serializer.is_valid():
             serializer.save()
             status_code['TOPIC_MODIFY_SUCCESS']['data'] = serializer.data
@@ -480,7 +485,8 @@ class TopicDetailViewSet(ModelViewSet):
         try:
             return Topic.objects.get(pk=pk)
         except Topic.DoesNotExist:
-            return status_code['TOPIC_DELETE_FAIL']
+            status_code['TOPIC_DELETE_FAIL']['data'] = 'Data does not exist'
+            return Response({'result' : status_code['TOPIC_DELETE_FAIL']})
 
     # override
     # url에 입력한 topic_id에 해당하는 Topic query set을 반환
@@ -517,40 +523,44 @@ class ChatRoomListViewSet(ModelViewSet):
     # list [POST] 해당 그룹의 채팅방 생성, POST로 받아온 participants를 채팅방의 멤버로 등록
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        if serializer.is_valid():
+            # serializer.is_valid(raise_exception=True)
+            # 채팅방을 생성
+            self.perform_create(serializer)
 
-        # 채팅방을 생성
-        self.perform_create(serializer)
+            # participants를 ChatRoomMember로 추가한다
+            # participants가 같은 그룹에 속해있으면 채팅방에 초대한다 (front에서 처리 가능)
+            participants_id = self.request.data['participants']  # data in POST body (list)
+            participants = User.objects.filter(pk__in=participants_id)  # (queryset)
+            chatRoom = ChatRoom.objects.get(pk=serializer.data['id'])  # serializer.data 사용
 
-        # participants를 ChatRoomMember로 추가한다
-        # participants가 같은 그룹에 속해있으면 채팅방에 초대한다 (front에서 처리 가능)
-        participants_id = self.request.data['participants']  # data in POST body (list)
-        participants = User.objects.filter(pk__in=participants_id)  # (queryset)
-        chatRoom = ChatRoom.objects.get(pk=serializer.data['id'])  # serializer.data 사용
+            print("participants: " + str(participants) + ", chatRoom: " + str(chatRoom))
 
-        print("participants: " + str(participants) + ", chatRoom: " + str(chatRoom))
+            for participant in participants:
+                ChatRoomMember.objects.create(user=participant, chatRoom=chatRoom)
 
-        for participant in participants:
-            ChatRoomMember.objects.create(user=participant, chatRoom=chatRoom)
+            # TODO 생성한 채팅방을 다시 업데이트 (chatroommember을 적용하기 위해)
+            # print(serializer.get_chatRoomMember_name(chatRoom))  # 추가된 chatroommember dict
+            #
+            # self.update()
+            # if serializer.is_valid():
+            #     print("dddddddddddddddddddddddddd")
+            #     print(serializer.validated_data)
+            #     serializer.save(chatRoomMember_name=chatroommember_serializer)
+            #
+            # self.perform_create(serializer)
+            #
+            # print(serializer)
+            # self.perform_update(serializer)
 
-        # TODO 생성한 채팅방을 다시 업데이트 (chatroommember을 적용하기 위해)
-        # print(serializer.get_chatRoomMember_name(chatRoom))  # 추가된 chatroommember dict
-        #
-        # self.update()
-        # if serializer.is_valid():
-        #     print("dddddddddddddddddddddddddd")
-        #     print(serializer.validated_data)
-        #     serializer.save(chatRoomMember_name=chatroommember_serializer)
-        #
-        # self.perform_create(serializer)
-        #
-        # print(serializer)
-        # self.perform_update(serializer)
+            headers = self.get_success_headers(serializer.data)
 
-        headers = self.get_success_headers(serializer.data)
+            status_code['CHAT_MADE_SUCCESS']['data']  = serializer.data
+            return Response({'result' : status_code['CHAT_MADE_SUCCESS']}, status=status.HTTP_200_OK, headers=headers)
 
-        status_code['CHAT_MADE_SUCCESS']['data']  = serializer.data
-        return Response({'result' : status_code['CHAT_MADE_SUCCESS']}, status=status.HTTP_200_OK, headers=headers)
+        else:
+            status_code['CHAT_MADE_FAILURE']['data'] = serializer.errors
+            return Response({'result' : status_code['CHAT_MADE_FAILURE']} , status=status.HTTP_200_OK)
 
     # override
     # url에 입력한 group_id에 해당하는 ChatRoom query set을 반환
@@ -603,33 +613,37 @@ class ChatRoomDetailViewSet(ModelViewSet):
         print("chatroom_id: " + str(chatroom_id))
 
         chatroom, created = ChatRoom.objects.get_or_create(pk=chatroom_id)
-        chatroom_serializer = ChatRoomDetailSerializer(chatroom)
+        try:
+            chatroom_serializer = ChatRoomDetailSerializer(chatroom)
 
-        chatroom_message = chatroom.chatRoomMessages.order_by('-created_time')[:50]
-        chatroom_message_serializer = ChatRoomMessageSerializer(chatroom_message, many=True)
+            chatroom_message = chatroom.chatRoomMessages.order_by('-created_time')[:50]
+            chatroom_message_serializer = ChatRoomMessageSerializer(chatroom_message, many=True)
 
-        # We want to show the last 50 messages, ordered most-recent-last
-        # topic_message = reversed(topic_message_serializer)
+            # We want to show the last 50 messages, ordered most-recent-last
+            # topic_message = reversed(topic_message_serializer)
 
-        # url에 입력한 chatroom_id에 해당하는 Chatroom Serializer와 해당 chatroom의 기존 message들을 가져온다
-        response_json_data = {
-            'chatroom_serializer': chatroom_serializer.data,
-            'chatroom_message_serializer': chatroom_message_serializer.data,
-        }
+            # url에 입력한 chatroom_id에 해당하는 Chatroom Serializer와 해당 chatroom의 기존 message들을 가져온다
+            # response_json_data = {
+            #     'chatroom_serializer': chatroom_serializer.data,
+            #     'chatroom_message_serializer': chatroom_message_serializer.data,
+            # }
 
 
-        status_code['CHAT_GET_DETAIL_SUCCESS']['data'] = {'chatroom_info' : chatroom_serializer.data, 'chatroom_message' : chatroom_message_serializer.data}
-        return Response({'result' : status_code['CHAT_GET_DETAIL_SUCCESS']}, status=status.HTTP_200_OK)
+            status_code['CHAT_GET_DETAIL_SUCCESS']['data'] = {'chatroom_info' : chatroom_serializer.data, 'chatroom_message' : chatroom_message_serializer.data}
+            return Response({'result' : status_code['CHAT_GET_DETAIL_SUCCESS']}, status=status.HTTP_200_OK)
+        except:
+            return Response({'result' : status_code['CHAT_GET_DETAIL_FAILURE']}, status=status.HTTP_200_OK)
 
     # detail [DELETE] 채팅방 삭제(기본 토픽은 삭제 불가)
     # TODO ChatRoomMember에서 제거
     def destroy(self, request, *args, **kwargs):
         chatroom_id = self.kwargs['chatroom_id']
         chatroom = self.get_object(chatroom_id)
-        chatroom.delete()
-
-
-        return Response({'result': status_code['CHAT_DELETE_SUCCESS']}, status=status.HTTP_200_OK)
+        if chatroom is not None:
+            chatroom.delete()
+            return Response({'result': status_code['CHAT_DELETE_SUCCESS']}, status=status.HTTP_200_OK)
+        else:
+            return Response({'result' : status_code['CHAT_DELETE_FAIL']}, status=status.HTTP_200_OK)
 
     # override
     # pk에 해당하는 ChatRoom obj를 반환
@@ -637,7 +651,8 @@ class ChatRoomDetailViewSet(ModelViewSet):
         try:
             return ChatRoom.objects.get(pk=pk)
         except ChatRoom.DoesNotExist:
-            raise Http404  # TODO error 수정 필요
+            status_code['CHAT_GET_DETAIL_FAILURE']['data'] = 'ChatRoom does not exist'
+            return Response({'result' : status_code['CHAT_GET_DETAIL_FAILURE']}, status=status.HTTP_200_OK)
 
     # override
     # url에 입력한 chatroom_id에 해당하는 ChatRoom query set을 반환
