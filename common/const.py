@@ -18,7 +18,7 @@ status_code = {
             "data": ""
     },
 
-    'FAILURE': {
+    'FAIL': {
         "code": 0,
         "msg": "Request Failure",
         "data": ""
@@ -47,7 +47,7 @@ status_code = {
         "msg": "User signout success",
         "data": ""
     },
-    'USER_SIGNOUT_FAILURE': {
+    'USER_SIGNOUT_FAIL': {
         "code": 1403,
         "msg": "User signout failure",
         "data": ""
@@ -85,7 +85,7 @@ status_code = {
         "msg" : "Logout Success",
         "data" : ""
     },
-    'LOGOUT_FAILURE' : {
+    'LOGOUT_FAIL' : {
         "code" : 3401,
         "msg" : "Logout Failure",
         "data" : ""
@@ -96,7 +96,7 @@ status_code = {
         "msg" : "User information Retrieve",
         "data" : ""
     },
-    'USER_INFO_GET_FAILURE' : {
+    'USER_INFO_GET_FAIL' : {
         "code" : 4401,
         "msg" : "User information retrieve fail",
         "data" : ""
@@ -106,7 +106,7 @@ status_code = {
         "msg" : "User information modified success",
         "data" : ""
     },
-    'USER_INFO_MODIFY_FAILURE' : {
+    'USER_INFO_MODIFY_FAIL' : {
         "code" : 4403,
         "msg" : "User information modification failure",
         "data" : ""
@@ -153,27 +153,27 @@ status_code = {
         "msg": "Get Group detail Success",
         "data": ""
     },
-    'GROUP_MADE_FAILURE': {
+    'GROUP_MADE_FAIL': {
         "code": 5400,
         "msg": "Group creation fail",
         "data": ""
     },
-    'GROUP_LIST_FAILURE': {
+    'GROUP_LIST_FAIL': {
         "code": 5401,
         "msg": "Cannot retrieve list of group",
         "data": ""
     },
-    'GROUP_MEMBER_GET_FAILURE': {
+    'GROUP_MEMBER_GET_FAIL': {
         "code": 5402,
         "msg": "group memeberlist get fail",
         "data": ""
     },
-    'GROUP_INVITATION_FAILURE': {
+    'GROUP_INVITATION_FAIL': {
         "code": 5403,
         "msg": "Group invite Fail",
         "data": ""
     },
-    'GROUP_INVITATION_ACTIVATE_FAILURE': {
+    'GROUP_INVITATION_ACTIVATE_FAIL': {
         "code": 5404,
         "msg": "Activation Fail",
         "data": ""
@@ -188,7 +188,7 @@ status_code = {
         "msg": "Group Exit Fail",
         "data": ""
     },
-    'GROUP_GET_DETAIL_FAILURE': {
+    'GROUP_GET_DETAIL_FAIL': {
         "code": 5407,
         "msg": "Get Group detail Fail",
         "data": ""
@@ -241,27 +241,27 @@ status_code = {
         "msg": "Get Topic modify Success",
         "data": ""
     },
-    'TOPIC_MADE_FAILURE': {
+    'TOPIC_MADE_FAIL': {
         "code": 6400,
         "msg": "Topic creation fail",
         "data": ""
     },
-    'TOPIC_LIST_FAILURE': {
+    'TOPIC_LIST_FAIL': {
         "code": 6401,
         "msg": "Cannot retrieve list of Topic",
         "data": ""
     },
-    'TOPIC_MEMBER_GET_FAILURE': {
+    'TOPIC_MEMBER_GET_FAIL': {
         "code": 6402,
         "msg": "Topic memeberlist get fail",
         "data": ""
     },
-    'TOPIC_INVITATION_FAILURE': {
+    'TOPIC_INVITATION_FAIL': {
         "code": 6403,
         "msg": "Topic invite Fail",
         "data": ""
     },
-    'TOPIC_INVITATION_ACTIVATE_FAILURE': {
+    'TOPIC_INVITATION_ACTIVATE_FAIL': {
         "code": 6404,
         "msg": "Activation Fail",
         "data": ""
@@ -276,12 +276,12 @@ status_code = {
         "msg": "Topic Exit Fail",
         "data": ""
     },
-    'TOPIC_GET_DETAIL_FAILURE': {
+    'TOPIC_GET_DETAIL_FAIL': {
         "code": 6407,
         "msg": "Get Topic detail Fail",
         "data": ""
     },
-    'TOPIC_MODIFY_FAILURE': {
+    'TOPIC_MODIFY_FAIL': {
         "code": 6408,
         "msg": "Get Topic modify Fail",
         "data": ""
@@ -328,27 +328,27 @@ status_code = {
         "msg": "Get Chat detail Success",
         "data": ""
     },
-    'CHAT_MADE_FAILURE': {
+    'CHAT_MADE_FAIL': {
         "code": 7400,
         "msg": "Chat creation fail",
         "data": ""
     },
-    'CHAT_LIST_FAILURE': {
+    'CHAT_LIST_FAIL': {
         "code": 7401,
         "msg": "Cannot retrieve list of Chat",
         "data": ""
     },
-    'CHAT_MEMBER_GET_FAILURE': {
+    'CHAT_MEMBER_GET_FAIL': {
         "code": 7402,
         "msg": "Chat memeberlist get fail",
         "data": ""
     },
-    'CHAT_INVITATION_FAILURE': {
+    'CHAT_INVITATION_FAIL': {
         "code": 7403,
         "msg": "Chat invite Fail",
         "data": ""
     },
-    'CHAT_INVITATION_ACTIVATE_FAILURE': {
+    'CHAT_INVITATION_ACTIVATE_FAIL': {
         "code": 7404,
         "msg": "Activation Fail",
         "data": ""
@@ -363,7 +363,7 @@ status_code = {
         "msg": "Chat Exit Fail",
         "data": ""
     },
-    'CHAT_GET_DETAIL_FAILURE': {
+    'CHAT_GET_DETAIL_FAIL': {
         "code": 7407,
         "msg": "Get Chat detail Fail",
         "data": ""
