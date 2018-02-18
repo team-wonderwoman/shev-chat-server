@@ -366,16 +366,23 @@ class GroupDetailAPIView(APIView):
     def get(self, *args, **kwargs):
         print("groupdetailapiview")
         group_id = self.kwargs['group_id']
-        queryset1 = Topic.objects.filter(group_id=group_id).order_by('pk')
-        queryset2 = ChatRoom.objects.filter(group_id=group_id).order_by('pk')
-        serializer1 = TopicListSerializer(queryset1, many=True)
-        serializer2 = ChatRoomListSerializer(queryset2, many=True)
+        queryset1 = Topic.objects.filter(group_id=group_id).order_by('pk') # 해당 그룹의 토픽 목록을 가져옴
+        queryset2 = ChatRoom.objects.filter(group_id=group_id).order_by('pk') # 해당 그룹의 채팅 목록을 가져옴
+        try :
+            serializer1 = TopicListSerializer(queryset1, many=True)
+            serializer2 = ChatRoomListSerializer(queryset2, many=True)
 
-        response_json_data = {
-            'topic_serializer': serializer1.data,
-            'chatroom_serializer': serializer2.data,
-        }
-        return Response(response_json_data)
+            # response_json_data = {
+            #     'topic_list': serializer1.data,
+            #     'chatroom_list': serializer2.data,
+            # }
+
+            status_code['GROUP_GET_DETAIL_SUCCESS']['data'] = {'topic_list' : serializer1.data , 'chatroom_list' : serializer2.data }
+            return Response({'result' : status_code['GROUP_GET_DETAIL_SUCCESS']}, status=status.HTTP_200_OK)
+
+        except :
+            status_code['GROUP_GET_DETAIL_FAILURE']['data'] = {'topic_list' : serializer1.errors , 'chatroom_list' : serializer2.errros }
+            return Response({'result' : status_code['GROUP_GET_DETAIL_FAILURE']}, status=status.HTTP_200_OK)
 
 ##########################################################################
 
@@ -387,17 +394,30 @@ class TopicListViewSet(ModelViewSet):
     # list [GET] 해당 그룹의 토픽 리스트 조회
     def list(self, request, *args, **kwargs):
         queryset = self.get_queryset()
-        serializer = TopicListSerializer(queryset, many=True)  # 해당 group의 모든 topic_name을 가져온다
-        return Response(serializer.data)
+        try:
+            serializer = TopicListSerializer(queryset, many=True)  # 해당 group의 모든 topic_name을 가져온다
+        except:
+            status_code['TOPIC_LIST_FAILURE']['data'] = serializer.errors
+            return Response({'result' : status_code['TOPIC_LIST_FAILURE']}, status=status.HTTP_200_OK)
+
+        status_code['TOPIC_LIST_SUCCESS']['data'] = serializer.data
+        return Response({'result' : status_code['TOPIC_LIST_SUCCESS']}, status=status.HTTP_200_OK)
 
     # list [POST] 해당 그룹의 토픽 생성, POST로 토픽 이름 설정
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
 
-        self.perform_create(serializer)
-        headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+        try:
+            serializer.is_valid(raise_exception=True)
+            self.perform_create(serializer)
+            headers = self.get_success_headers(serializer.data)
+
+            status_code['TOPIC_MADE_SUCCESS']['data'] = serializer.data
+            return Response({'result': status_code['TOPIC_MADE_SUCCESS']}, status=status.HTTP_200_OK, headers=headers)
+
+        except:
+            status_code['TOPIC_MADE_FAILURE']['data'] = serializer.errors
+            return Response({'result' : status_code['TOPIC_MADE_FAILURE']}, status=status.HTTP_200_OK)
 
     # override
     # url에 입력한 group_id에 해당하는 Topic query set을 반환
@@ -445,13 +465,15 @@ class TopicDetailViewSet(ModelViewSet):
         # topic_message = reversed(topic_message_serializer)
 
         # url에 입력한 topic_id에 해당하는 Topic Serializer와 해당 topic의 기존 message들을 가져온다
-        response_json_data = {
-            # 'topic': topic,
-            'topic_serializer': topic_serializer.data,
-            'topic_message_serializer': topic_message_serializer.data,
-        }
+        # response_json_data = {
+        #     # 'topic': topic,
+        #     'topic_serializer': topic_serializer.data,
+        #     'topic_message_serializer': topic_message_serializer.data,
+        # }
 
-        return Response(response_json_data)
+
+        status_code['TOPIC_GET_DETAIL_SUCCESS']['data'] = {'topic_detail' : topic_serializer.data , 'topic_message' : topic_message_serializer.data}
+        return Response({'result' : status_code['TOPIC_GET_DETAIL_SUCCESS']}, status=status.HTTP_200_OK)
 
     # detail [PUT] 토픽 이름 변경
     def update(self, request, *args, **kwargs):
@@ -464,15 +486,21 @@ class TopicDetailViewSet(ModelViewSet):
         )
         if serializer.is_valid():
             serializer.save()
-            return Response(serializer.data)
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            status_code['TOPIC_MODIFY_SUCCESS']['data'] = serializer.data
+            return Response({'result' : status_code['TOPIC_MODIFY_SUCCESS']}, status=status.HTTP_200_OK)
+        status_code['TOPIC_MODIFY_FAILURE']['data'] = serializer.errors
+        return Response({'result' : status_code['TOPIC_MODIFY_FAILURE']}, status=status.HTTP_200_OK)
+
 
     # detail [DELETE] 토픽 삭제(기본 토픽은 삭제 불가)
     def destroy(self, request, *args, **kwargs):
         topic_id = self.kwargs['topic_id']
-        topic = self.get_object(topic_id)
-        topic.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        try:
+            topic = self.get_object(topic_id)
+            topic.delete()
+            return Response({'result' : status_code['TOPIC_DELETE_SUCCESS']}, status=status.HTTP_200_OK)
+        except:
+            return Response({'result' : status_code['TOPIC_DELETE_FAIL']}, status=status.HTTP_200_OK)
 
     # override
     # pk에 해당하는 Topic obj를 반환
@@ -480,7 +508,7 @@ class TopicDetailViewSet(ModelViewSet):
         try:
             return Topic.objects.get(pk=pk)
         except Topic.DoesNotExist:
-            raise Http404  ### TODO error 수정 필요
+            return status_code['TOPIC_DELETE_FAIL']
 
     # override
     # url에 입력한 topic_id에 해당하는 Topic query set을 반환
@@ -513,7 +541,14 @@ class ChatRoomListViewSet(ModelViewSet):
             chatRoom_queryset = ChatRoom.objects.filter(pk__in=chatRoomMember_queryset.values('chatRoom'), group=group_id)
 
             serializer = ChatRoomListSerializer(chatRoom_queryset, many=True)  # 자신이 속한 chatRoom를 가져온다
-            return Response(serializer.data)
+
+            status_code['CHAT_LIST_SUCCESS']['data'] = serializer.data
+            return Response({'result' : status_code['CHAT_LIST_SUCCESS']} , status=status.HTTP_200_OK)
+
+        else:
+            status_code['CHAT_LIST_FAILURE']['data'] = "user_id is None"
+            return Response({'result' : status_code['CHAT_LIST_FAILURE']}, status=status.HTTP_200_OK)
+
 
     # list [POST] 해당 그룹의 채팅방 생성, POST로 채팅방의 멤버로 등록
     def create(self, request, *args, **kwargs):
@@ -524,13 +559,13 @@ class ChatRoomListViewSet(ModelViewSet):
 
         # 채팅방을 생성한 사람을 ChatRoomMember로 추가한다
         creater_id = self.request.data['createrID']  # data in POST body
-        creater = User.objects.get(pk=creater_id)
+        creater = User.objects.filter(pk__in=creater_id)
 
         chatRoom = ChatRoom.objects.get(pk=serializer.data['id'])  # serializer.data 사용
         print("createrID: " + str(creater_id) + ", chatRoom: " + str(chatRoom))
         chatroommember_serializer = ChatRoomMemberSerializer(data=self.request.data)
         chatroommember_serializer.is_valid(raise_exception=True)
-        chatroommember_serializer.save(user=creater, chatRoom=chatRoom)
+        chatroommember_serializer.save(user=creater.id, chatRoom=chatRoom.id, many=True)
         print("추가된 chatroommember")
         print(serializer.get_chatRoomMember_name(chatRoom))  # 추가된 chatroommember dict
 
@@ -550,7 +585,9 @@ class ChatRoomListViewSet(ModelViewSet):
         # self.perform_update(serializer)
 
         headers = self.get_success_headers(serializer.data)
-        return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+
+        status_code['CHAT_MADE_SUCCESS']['data']  = serializer.data
+        return Response({'result' : status_code['CHAT_MADE_SUCCESS']}, status=status.HTTP_200_OK, headers=headers)
 
     # override
     # url에 입력한 group_id에 해당하는 ChatRoom query set을 반환
@@ -617,7 +654,9 @@ class ChatRoomDetailViewSet(ModelViewSet):
             'chatroom_message_serializer': chatroom_message_serializer.data,
         }
 
-        return Response(response_json_data)
+
+        status_code['CHAT_GET_DETAIL_SUCCESS']['data'] = {'chatroom_info' : chatroom_serializer.data, 'chatroom_message' : chatroom_message_serializer.data}
+        return Response({'result' : status_code['CHAT_GET_DETAIL_SUCCESS']}, status=status.HTTP_200_OK)
 
     # detail [DELETE] 채팅방 삭제(기본 토픽은 삭제 불가)
     # TODO ChatRoomMember에서 제거
@@ -625,7 +664,9 @@ class ChatRoomDetailViewSet(ModelViewSet):
         chatroom_id = self.kwargs['chatroom_id']
         chatroom = self.get_object(chatroom_id)
         chatroom.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+        return Response({'result': status_code['CHAT_DELETE_SUCCESS']}, status=status.HTTP_200_OK)
 
     # override
     # pk에 해당하는 ChatRoom obj를 반환
