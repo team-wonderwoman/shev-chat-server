@@ -3,8 +3,9 @@ from django.conf import settings
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from .exceptions import ClientError
-from .utils import get_room_or_error, get_previous_messages
+from .utils import get_room_or_error, get_previous_messages, save_message
 from .models import Topic, TopicMessage
+
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
     """
@@ -35,7 +36,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
 
         await self.accept()
         self.rooms = set()
-        await self.init_room()
         # await self.send_room(content["room"], content["roomtype"], content["message"])
 
     async def receive_json(self, content):
@@ -55,7 +55,7 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 # Leave the room
                 await self.leave_room(content["room"], content["roomtype"])
             elif command == "send":
-                await self.send_room(content["room"], content["roomtype"], content["message"])
+                await self.send_room(content)
         except ClientError as e:
             # Catch any errors and send it back
             await self.send_json({"error": e.code})
@@ -73,53 +73,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 pass
 
     ##### Command helper methods called by receive_json
-
-    # 처음 group_id를 선택했을 때, 기본 topic을 열고 이전 message(100개)를 보낸다
-    async def init_room(self):
-        """
-        Called by receive_json when someone sent a join command.
-        """
-        print("============init_room============")
-        message_path_list = self.scope['path'].strip('/').split('/')
-        # api/group/:group_id/
-        print("---message path list: " + str(message_path_list))
-
-        group_id = message_path_list[2]
-
-        # Topic list의 첫번째 room_pk는 삭제 불가능한 기본 토픽에 해당한다
-        # room_pk = 1
-        room = Topic.objects.filter(group_id=group_id).order_by('pk')[0]
-        room_pk = room.id
-        print("room_pk: " + str(room_pk))
-
-        # The logged-in user is in our scope thanks to the authentication ASGI middleware
-        room = await get_room_or_error(room_pk, self.scope["user"], None)
-        messages = await get_previous_messages(room_pk, self.scope["user"], None)
-
-        # Send a join message if it's turned on
-        if settings.NOTIFY_USERS_ON_ENTER_OR_LEAVE_ROOMS:
-            await self.channel_layer.group_send(
-                room.group_name,
-                {
-                    "type": "chat.join",
-                    "room_id": room_pk,
-                    "username": self.scope["user"].username,
-                }
-            )
-        # Store that we're in the room
-        self.rooms.add(room_pk)
-        # Add them to the group so they get room messages
-        await self.channel_layer.group_add(
-            room.group_name,
-            self.channel_name,
-        )
-        # Instruct their client to finish opening the room
-        await self.send_json({
-            "join": str(room.id),
-            "room_id": room.id,
-            "title": room.topic_name,
-            "message": messages,  # room에 있던 기존의 message
-        })
 
     async def join_room(self, room_id, room_type):
         """
@@ -184,22 +137,44 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
             "leave": str(room.id),
         })
 
-    async def send_room(self, room_id, room_type, message):
+    async def send_room(self, content):
         """
         Called by receive_json when someone sends a message to a room.
         """
         print("============send_room============")
+        print(self)
+        print(type(self))
+        print(content)
+        print(type(content))  # dict
+
+        room_type = content['roomtype']
+        room_id = content['room']  # 들어온 topic/chatroom의 pk
+        sender_id = content['sender']
+        message = content['message']
+        print("ROOM_ACCESS_DENIED check")
+        print(self.rooms)
+
         # Check they are in this room
         if room_id not in self.rooms:
             raise ClientError("ROOM_ACCESS_DENIED")
+
         # Get the room and send to the group about it
         room = await get_room_or_error(room_id, self.scope["user"], room_type)
+
+        # 받은 message를 저장한다
+        json_data = await save_message(room_id, sender_id, room_type, message)
+        sender_name = json_data['sender_name']
+        message = json_data['messages_serializer']
+        print(sender_name)
+        print(message)
+
         await self.channel_layer.group_send(
             room.group_name,
             {
-                "type": "chat.message",
+                "type": "chat.message",  # call chat_message method
                 "room_id": room_id,
-                "username": self.scope["user"].username,
+                # "username": self.scope["user"].username,
+                "username": sender_name,
                 "message": message,
             }
         )

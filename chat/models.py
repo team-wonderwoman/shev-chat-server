@@ -1,4 +1,5 @@
-import json,os
+import json
+import os
 from django.db import models
 from django.utils.six import python_2_unicode_compatible
 
@@ -7,7 +8,7 @@ from AuthSer.models import User
 import channels
 from .settings import MSG_TYPE_MESSAGE
 
-# TODO group app 으로 이동
+
 class Group(models.Model):
     group_name = models.CharField(max_length=50, null=False)  # group_name 입력은 필수로 한다.
 
@@ -22,15 +23,14 @@ class Group(models.Model):
         verbose_name = "group"
         verbose_name_plural = "groups"
 
-    # def __str__(self):
-    #    return self.group_name
+    def __str__(self):
+       return str(self.group_name)
 
     # # 이 그룹의 모든 토픽을 가져온다.
     # def get_topic(self):
     #     return self.topics.all()
 
 
-# TODO group app 으로 이동
 class GroupMember(models.Model):
     """
     어떤 그룹에 어떤 사용자가 있는지
@@ -70,7 +70,7 @@ class Topic(models.Model):
     created_time = models.DateTimeField('Create Time', auto_now_add=True)
 
     class Meta:
-        ordering = ['-created_time']
+        ordering = ['created_time']
 
     def __str__(self):
         return self.topic_name
@@ -85,26 +85,26 @@ class Topic(models.Model):
         return "room-%s" % self.id
 
 
-@python_2_unicode_compatible
-class TopicMember(models.Model):
-    user_id = models.ForeignKey(
-        User,
-        related_name="topics"
-    )
-    topic_id = models.ForeignKey(
-        Topic,
-        related_name="topics"
-    )
-    created_time = models.DateTimeField('Create Time', auto_now_add=True)
-
-    def __str__(self):
-        return '[{user_id}] {topic_id}'.format(**self.as_dict())
-
-    def as_dict(self):
-        return {
-            'user_id': self.user_id,
-            'topic_id': self.topic_id,
-        }
+# @python_2_unicode_compatible
+# class TopicMember(models.Model):
+#     user_id = models.ForeignKey(
+#         User,
+#         related_name="topics"
+#     )
+#     topic_id = models.ForeignKey(
+#         Topic,
+#         related_name="topics"
+#     )
+#     created_time = models.DateTimeField('Create Time', auto_now_add=True)
+#
+#     def __str__(self):
+#         return '[{user_id}] {topic_id}'.format(**self.as_dict())
+#
+#     def as_dict(self):
+#         return {
+#             'user_id': self.user_id,
+#             'topic_id': self.topic_id,
+#         }
 
 
 @python_2_unicode_compatible
@@ -117,7 +117,8 @@ class TopicMessage(models.Model):
         Topic,
         related_name="topic_messages"
     )
-    contents = models.TextField()  # 메시지 내용
+
+    contents = models.TextField()  # 메시지 내용, file이면 filaname
     is_file = models.BooleanField(default=False)  # file이면 True
     created_time = models.DateTimeField('Create Time', auto_now_add=True)
 
@@ -137,6 +138,27 @@ class TopicMessage(models.Model):
             'topic_id': self.topic_id,
             'created_time': self.formatted_created_time
         }
+
+
+@python_2_unicode_compatible
+class TopicFile(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name="topic_files"
+    )
+    message = models.ForeignKey(
+        TopicMessage,
+        related_name="topic_files"
+    )
+    file = models.FileField()
+    created_time = models.DateTimeField('Create Time', auto_now_add=True)
+
+    def get_filename(self):
+        filename = os.path.basename(self.file.name)
+        print("[[TopicFile]] get_filename")
+        print(filename)
+        return filename
+
 
 ##############################################################################################
 
@@ -238,25 +260,3 @@ class ChatRoomMessage(models.Model):
             'chatRoom': self.chatRoom,
             'created_time': self.formatted_created_time
         }
-
-
-#########################################################################################
-
-@python_2_unicode_compatible
-class TopicFile(models.Model):
-    user = models.ForeignKey(
-        User,
-        related_name="topic_files"
-    )
-    message = models.ForeignKey(
-        TopicMessage,
-        related_name="topic_files"
-    )
-    file = models.FileField()
-    created_time = models.DateTimeField('Create Time', auto_now_add=True)
-
-    def get_filename(self):
-        filename = os.path.basename(self.file.name)
-        print("[[TopicFile]] get_filename")
-        print(filename)
-        return filename

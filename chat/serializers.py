@@ -4,8 +4,12 @@ from .models import Group, GroupMember
 # from .models import ChatRoom, ChatMember, Message
 from AuthSer.models import User
 
-from .models import Topic, TopicMessage, TopicMember
-from .models import ChatRoom, ChatRoomMember, ChatRoomMessage
+from .models import (
+    Topic, TopicMessage,
+    TopicFile,
+    ChatRoom, ChatRoomMember, ChatRoomMessage,
+
+)
 from rest_framework.renderers import JSONRenderer
 
 from rest_framework.serializers import (
@@ -15,17 +19,18 @@ from rest_framework.serializers import (
     HyperlinkedIdentityField
 )
 
+
 class GroupListSerializer(ModelSerializer):
     class Meta:
         model = Group
-        fields = ('id','group_name','manager_id', ) #__all__
+        fields = ('id', 'group_name', 'manager_id', )  #__all__
 
 
 
 class GroupMemberModelSerializer(ModelSerializer):
     class Meta:
         model = GroupMember
-        fields = ('id', 'group_id','user_id','is_active', ) #__all__
+        fields = ('id', 'group_id', 'user_id', 'is_active', )  #__all__
     #
     # def create(self, validated_data):
     #     group_id = validated_data.pop('group_id')
@@ -59,12 +64,18 @@ class TopicDetailSerializer(ModelSerializer):
         fields = ('id', 'topic_name', 'created_time')
 
 
+# class TopicMemberSerializer(ModelSerializer):
+#     class Meta:
+#         model = TopicMember
+#         fields = '__all__'  # user_id, topic_id
+
+
 class TopicMessageSerializer(ModelSerializer):
     sender = SerializerMethodField()
 
     class Meta:
         model = TopicMessage
-        fields = ('sender', 'topic_id', 'contents', 'created_time')
+        fields = '__all__'
 
     def get_sender(self, obj):
         return obj.user_id.user_name
@@ -130,3 +141,23 @@ class ChatRoomMessageSerializer(ModelSerializer):
 
     def get_sender(self, obj):
         return obj.user.user_name
+
+
+####################################################################
+
+class TopicFileUploadSerializer(ModelSerializer):
+    # sender = SerializerMethodField()
+
+    # user = serializers.SlugRelatedField(
+    #     read_only=True,
+    #     slug_field='id'
+    # )
+
+    class Meta:
+        model = TopicFile
+        fields = ('user', 'message', 'file')
+        # fields = ('user', 'file', )
+        read_only_fields = ('created_time', )
+
+    # def get_sender(self, obj):
+    #     return obj.user.user_name
