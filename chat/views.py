@@ -1,7 +1,8 @@
 import json
+import os
 from common.const import const_value, status_code
 
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 # from .permissions import IsOwnerOrReadOnly
 from django.utils.encoding import force_text
@@ -22,6 +23,7 @@ from rest_framework.generics import ListAPIView
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
+from ShevChatServer.settings import MEDIA_ROOT
 from AuthSer.serializers import UserModelSerializer
 from AuthSer.models import User
 from .sendmail import send_verification_mail, decode_verify_token
@@ -47,6 +49,7 @@ from .serializers import (
     ChatRoomMemberSerializer,
 
     TopicFileUploadSerializer,
+    TopicFileDownloadSerializer,
 )
 from .consumers import ChatConsumer
 
@@ -682,12 +685,11 @@ class TopicFileUploadView(APIView):
 
     def post(self, request, format=None, *args, **kwargs):
         print("[[FileUploadView]] post")
-        print(request.data)
 
         file = request.data['file']
-        print(file)
+        print("file: " + str(file))
         filename = file.name
-        print(filename)
+        print("filename: " + str(filename))
         user_id = request.data['user']
         user = User.objects.get(pk=user_id)
 
@@ -721,28 +723,67 @@ class TopicFileUploadView(APIView):
             print("[[TopicFileUploadView]] file_serializer error")
             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
-    def perform_create(self, serializer):
-        print("[[FileUploadView]] perform_create")
-        owner = User.objects.get(pk=self.request.data['owner'])
-        serializer.save(
-            owner=owner,
-            file=self.request.data.get('file')
-        )
 
+class TopicFileDownloadView(APIView):
+    # queryset = TopicFile.objects.all()
+    serializer_class = TopicFileDownloadSerializer
 
-# class FileUploadViewSet(ModelViewSet):
-#     queryset = FileUpload.objects.all()
-#     serializer_class = FileUploadSerializer
-#     parser_classes = (MultiPartParser, FormParser,)
+    def get(self, *args, **kwargs):
+        print("[[TopicFileDownloadView]] get")
+        message_id = self.kwargs['message_id']  # data in url
+
+        # message_id에 해당하는 TopicMessage의 TopicFile을 가져온다
+        topic_message = TopicMessage.objects.get(pk=message_id)
+        topic_file = TopicFile.objects.get(message=topic_message)
+        topic_filename = topic_file.get_filename()
+
+        # 현재 프로젝트 최상위 (부모폴더) 밑에 있는 'topic_filename' 파일
+        filepath = os.path.join(MEDIA_ROOT, topic_filename)
+        print("filepath: " + str(filepath))
+        filename = os.path.basename(filepath)  # 파일명만 반환
+        print("filename: " + str(filename))
+
+        with open(filepath, 'rb') as f:
+            response = HttpResponse(f, content_type='application/octet-stream')
+            # 필요한 응답헤더 세팅
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+            return response
+
+# class ImageUploadViewSet(APIView):
+#     queryset = TopicFile.objects.all()
+#     serializer_class =TopicFileDownloadSerializer
 #
-#     def perform_create(self, serializer):
-#         serializer.save(owner=self.request.user,
-#                         datafile=self.request.data.get('datafile'))
+#     @detail_route(methods=['get'])
+#     def imagefile(self, request, pk=None):
+#         r = self.get_object()
+#         # 확장자 추출
+#         ext = '*'
+#         if r.imagefile.path:
+#             ext = r.imagefile.path.split('.')[-1]
+#         content_type = 'image/' + ext
+#         # 다운로드용 Response 반환
+#         response = FileResponse(open(r.imagefile.path, 'rb'), content_type=content_type)
+#         return response
 
-# def post(self, request, *args, **kwargs):
-#     file_serializer = FileSerializer(data=request.data)
-#     if file_serializer.is_valid():
-#       file_serializer.save()
-#       return Response(file_serializer.data, status=status.HTTP_201_CREATED)
-#     else:
-#       return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class ImagesViewSet(viewsets.ModelViewSet):
+#     queryset = Image.objects.all()
+#     serializer_class = ImageSerializer
+
+#     def download_image_view(request, image_id):
+#         image = Image.objects.get(id=image_id)
+#         response = HttpResponse()
+#         response['X-Accel-Redirect'] = image.image_file.url
+#         response['Content-Disposition'] = 'attachment; filename="{}"'.format(image.image_file.name)
+#         return response
+#
+#     def get
+#         template = webodt.ODFTemplate('test.odt')
+#         queryset = Pupils.objects.get(id=kwargs['pk'])
+#         serializer = StudentSerializer(queryset)
+#         context = dict(serializer.data)
+#         document = template.render(Context(context))
+#         doc = converter().convert(document, format='doc')
+#         p = u'docs/cards/%s/%s_%s.doc' % (datetime.now().date(), context[u'surname'], context[u'name'])
+#         path = default_storage.save(p, doc)
+#         return response.Response(u'/media/' + path)
+
