@@ -13,7 +13,7 @@ from django.utils.http import urlsafe_base64_encode
 from email.message import EmailMessage
 from email.mime.application import MIMEApplication
 from common.const import const_value
-from AuthSer.redis import redis_set
+# from AuthSer.redis import redis_set
 
 def create_verify_token(groupId,query):
     payload = {

@@ -117,6 +117,7 @@ class TopicMessage(models.Model):
         Topic,
         related_name="topic_messages"
     )
+
     contents = models.TextField()  # 메시지 내용, file이면 filaname
     is_file = models.BooleanField(default=False)  # file이면 True
     created_time = models.DateTimeField('Create Time', auto_now_add=True)
@@ -160,6 +161,7 @@ class TopicFile(models.Model):
 
 
 ##############################################################################################
+
 
 @python_2_unicode_compatible
 class ChatRoom(models.Model):
@@ -233,6 +235,7 @@ class ChatRoomMessage(models.Model):
     user = models.ForeignKey(
         User,
         related_name="chatRoomMessages"
+
     )
     chatRoom = models.ForeignKey(
         ChatRoom,
@@ -257,11 +260,3 @@ class ChatRoomMessage(models.Model):
             'chatRoom': self.chatRoom,
             'created_time': self.formatted_created_time
         }
-
-
-##############################################################################################
-
-# class File(models.Model):
-#   file = models.FileField(blank=False, null=False)
-#   remark = models.CharField(max_length=20)
-#   timestamp = models.DateTimeField(auto_now_add=True)

@@ -26,6 +26,7 @@ class GroupListSerializer(ModelSerializer):
         fields = ('id', 'group_name', 'manager_id', )  #__all__
 
 
+
 class GroupMemberModelSerializer(ModelSerializer):
     class Meta:
         model = GroupMember
@@ -78,7 +79,6 @@ class TopicMessageSerializer(ModelSerializer):
 
     def get_sender(self, obj):
         return obj.user_id.user_name
-
 
 ####################################################################
 
