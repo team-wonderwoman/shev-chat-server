@@ -1,4 +1,4 @@
-import json
+import json, requests
 from common.const import const_value, status_code
 
 from django.http import Http404
@@ -25,10 +25,12 @@ from asgiref.sync import async_to_sync
 from AuthSer.serializers import UserModelSerializer
 from AuthSer.models import User
 from .sendmail import send_verification_mail, decode_verify_token
+from .split_token import split_header_token
 
 from .models import (
     Group, GroupMember,
-    Topic, TopicMessage, TopicFile,
+    Topic, TopicMessage,
+    # TopicFile,
     ChatRoom, ChatRoomMember,
 )
 
@@ -46,9 +48,10 @@ from .serializers import (
     ChatRoomMessageSerializer,
     ChatRoomMemberSerializer,
 
-    TopicFileUploadSerializer,
+    # TopicFileUploadSerializer,
 )
 from .consumers import ChatConsumer
+
 
 channel_layer = get_channel_layer()
 
@@ -59,7 +62,7 @@ class GroupListAPIView(ListAPIView):
     serializer_class = GroupListSerializer
 
     # [GET] User가 속한 그룹 조회 (그룹 이름만)
-    def get(self, *args, **kwargs):
+    def get(self,request, *args, **kwargs):
         queryset = self.get_queryset()  # GroupMember 에서 사용자와 그룹 간 관계 가져옴
         qs = Group.objects.all()  # 존재하는 그룹을 모두 가져옴
         user_id = int(self.kwargs['user_id'])  # url에 있는 user_id를 가져옴
@@ -69,8 +72,8 @@ class GroupListAPIView(ListAPIView):
             queryset = queryset.filter(user_id=user_id)  # user가 속한 group의 group_id 만을 가져옴
             qs = qs.filter(pk__in=queryset.values('group_id'))  # 해당 group의 group_id로 group_name을 가져옴
             serializer = GroupListSerializer(qs, many=True)
-            # manager = User.objects.filter(pk__in=qs.values('manager_id'))
 
+            # manager = User.objects.filter(pk__in=qs.values('manager_id'))
             # dict = convert_query_to_dict(qs, manager)
 
             print(serializer.data)
@@ -78,7 +81,8 @@ class GroupListAPIView(ListAPIView):
             return Response({
                 'result': status_code['GROUP_LIST_SUCCESS']}, status=status.HTTP_200_OK)
         else:
-            return Response({'result': status_code['GROUP_LIST_FAILURE']}, status=status.HTTP_200_OK)
+            return Response({'result': status_code['GROUP_LIST_FAIL']}, status=status.HTTP_200_OK)
+
 
     # override
     # [GET] GroupMember 테이블의 모든 컬럼 조회
@@ -106,8 +110,8 @@ class GroupListAPIView(ListAPIView):
             # print(group_query)
 
         except:
-            status_code['GROUP_MADE_FAILURE']['data'] = request.data
-            return Response({'result': status_code['GROUP_MADE_FAILURE']}, status=status.HTTP_200_OK)
+            status_code['GROUP_MADE_FAIL']['data'] = request.data
+            return Response({'result': status_code['GROUP_MADE_FAIL']}, status=status.HTTP_200_OK)
         request.data['group_id'] = groupId  # request.data에 group_id 세팅 (사용자가 생성한 그룹의 pk)
         request.data['user_id'] = userId  # request.data에 user_id 세팅 (사용자의 pk)
         request.data['is_active'] = True  # request.data에 is_active 세팅 (그룹의 생성자여서 인증할 필요 없으므로 True)
@@ -121,8 +125,8 @@ class GroupListAPIView(ListAPIView):
             group = Group.objects.get(pk=group_id)
             Topic.objects.create(topic_name='Main-Notice', group_id=group)
         except:
-            status_code['GROUP_MADE_FAILURE']['data'] = request.data
-            return Response({'result': status_code['GROUP_MADE_FAILURE']}, status=status.HTTP_200_OK)
+            status_code['GROUP_MADE_FAIL']['data'] = request.data
+            return Response({'result': status_code['GROUP_MADE_FAIL']}, status=status.HTTP_200_OK)
 
         # GroupMember 테이블에 request.data 저장
         try:
@@ -139,7 +143,7 @@ class GroupListAPIView(ListAPIView):
             return Response({'result': status_code['GROUP_MADE_SUCCESS']},
                             status=status.HTTP_200_OK)
         except :
-            return Response({'result': status_code['GROUP_MADE_FAILURE'], 'data' : serializer.data,'received_data': request.data},
+            return Response({'result': status_code['GROUP_MADE_FAIL'], 'data' : serializer.data,'received_data': request.data},
                             status=status.HTTP_200_OK)
 
 
@@ -160,7 +164,7 @@ class GroupMemberAPIView(APIView):
             status_code['GROUP_MEMBER_GET_SUCCESS']['data'] = serializer.data
             return Response({'result' : status_code['GROUP_MEMBER_GET_SUCCESS']}, status=status.HTTP_200_OK)
 
-        return Response({'result': status_code['GROUP_MEMBER_GET_FAILURE']}, status=status.HTTP_200_OK)
+        return Response({'result': status_code['GROUP_MEMBER_GET_FAIL']}, status=status.HTTP_200_OK)
 
     # User 테이블의 모든 정보를 가져오기 위한 함수
     def get_user_queryset(self, *args, **kwargs):
@@ -202,8 +206,8 @@ class GroupInviteAPIView(APIView):
             request.data['is_active'] = False
 
         except queryset is None:
-            status_code['GROUP_INVITATION_FAILURE']['data'] = request.data
-            return Response({'result': status_code['GROUP_INVITATION_FAILURE']}, status=status.HTTP_200_OK)
+            status_code['GROUP_INVITATION_FAIL']['data'] = request.data
+            return Response({'result': status_code['GROUP_INVITATION_FAIL']}, status=status.HTTP_200_OK)
 
 
         # 이메일보내기
@@ -218,9 +222,55 @@ class GroupInviteAPIView(APIView):
             return Response({'result': status_code['GROUP_INVITATION_SUCCESS']},
                             status=status.HTTP_200_OK)
         else:
-            status_code['GROUP_INVITATION_ACTIVATE_FAILURE']['data'] = request.data
-            return Response({'result': status_code['GROUP_INVITATION_FAILURE']},
+            status_code['GROUP_INVITATION_ACTIVATE_FAIL']['data'] = request.data
+            return Response({'result': status_code['GROUP_INVITATION_FAIL']},
                             status=status.HTTP_200_OK)
+
+# @shortcircuitmiddleware
+# # 그룹 초대 메일 인증 처리
+# def group_join(request):
+#     # [GET] 이메일 인증 처리 - 사용자가 메일로 발송된 url 클릭 시 is_activate 필드 True로 바꿈
+#     if request.method=='GET':
+#
+#         #uid = force_text(urlsafe_base64_decode(self.kwargs['uid64']))  # url에 있는 base64 인코딩 된 uid를 decode해서 가져옴
+#         #verify_token = force_text(urlsafe_base64_decode(self.kwargs['verify_token'])) # url에 있는 token을 decode해서 가져옴
+#
+#         #print('Group_inviteAPIView_uid : %s, verify_token : %s' % (uid, verify_token))
+#
+#         #uid = int(uid)
+#         #try:
+#             # TODO query 지우기
+#         #     query = User.objects.get(id=uid) # 인증할 사용자의 data를 가져옴
+#         #
+#         # except query is None:
+#         #     status_code['GROUP_INVITATION_ACTIVATE_FAIL']['data'] = "User does not exist"
+#         #     return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAIL']}, status=status.HTTP_200_OK)
+#         #
+#         # verify_token = decode_verify_token(verify_token) # 그룹 초대 인증 토큰 확인 - 그룹 아이디 꺼내옴
+#         #
+#         # group = Group.objects.get(pk=verify_token)
+#         #
+#         # print("group_id??", end='')
+#         # print(group)
+#
+#
+#         try:
+#             # group_active_qs = GroupMember.objects.filter(group_id=group.id, user_id=uid)
+#             # group_active_qs.update(is_active=True)
+#             #status_code['GROUP_INVITATION_ACTIVATE_SUCCESS']['data'] = group_active_qs.values()
+#             return Response(
+#                 {'result': status_code['GROUP_INVITATION_ACTIVATE_SUCCESS']},
+#                 status=status.HTTP_200_OK)
+#
+#         #except group_active_qs is None:
+#         except:
+#             #status_code['GROUP_INVITATION_ACTIVATE_FAIL']['data'] = group_active_qs.values()
+#             return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAIL']},status=status.HTTP_200_OK)
+#
+# def shortcircuitmiddleware(f):
+#     def _shortcircuitmiddleware(*args, **kwargs):
+#         return f(*args, **kwargs)
+#     return _shortcircuitmiddleware
 
 
 # 그룹 초대 메일 인증 처리
@@ -240,8 +290,8 @@ class GroupJoinAPIView(APIView):
             query = User.objects.get(id=uid) # 인증할 사용자의 data를 가져옴
 
         except query is None:
-            status_code['GROUP_INVITATION_ACTIVATE_FAILURE']['data'] = "User does not exist"
-            return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAILURE']}, status=status.HTTP_200_OK)
+            status_code['GROUP_INVITATION_ACTIVATE_FAIL']['data'] = "User does not exist"
+            return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAIL']}, status=status.HTTP_200_OK)
 
         verify_token = decode_verify_token(verify_token) # 그룹 초대 인증 토큰 확인 - 그룹 아이디 꺼내옴
 
@@ -260,8 +310,8 @@ class GroupJoinAPIView(APIView):
                 status=status.HTTP_200_OK)
 
         except group_active_qs is None:
-            status_code['GROUP_INVITATION_ACTIVATE_FAILURE']['data'] = group_active_qs.values()
-            return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAILURE']},status=status.HTTP_200_OK)
+            status_code['GROUP_INVITATION_ACTIVATE_FAIL']['data'] = group_active_qs.values()
+            return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAIL']},status=status.HTTP_200_OK)
 
 
 # 그룹 삭제
@@ -352,8 +402,8 @@ class GroupDetailAPIView(APIView):
             status_code['GROUP_GET_DETAIL_SUCCESS']['data'] = {'topic_list': serializer1.data, 'chatroom_list': serializer2.data}
             return Response({'result': status_code['GROUP_GET_DETAIL_SUCCESS']}, status=status.HTTP_200_OK)
         else:
-            status_code['GROUP_GET_DETAIL_FAILURE']['data'] = ''
-            return Response({'result' : status_code['GROUP_GET_DETAIL_FAILURE']}, status=status.HTTP_200_OK)
+            status_code['GROUP_GET_DETAIL_FAIL']['data'] = ''
+            return Response({'result' : status_code['GROUP_GET_DETAIL_FAIL']}, status=status.HTTP_200_OK)
 
 ##########################################################################
 
@@ -368,8 +418,8 @@ class TopicListViewSet(ModelViewSet):
         try:
             serializer = TopicListSerializer(queryset, many=True)  # 해당 group의 모든 topic_name을 가져온다
         except:
-            status_code['TOPIC_LIST_FAILURE']['data'] = serializer.errors
-            return Response({'result' : status_code['TOPIC_LIST_FAILURE']}, status=status.HTTP_200_OK)
+            status_code['TOPIC_LIST_FAIL']['data'] = serializer.errors
+            return Response({'result' : status_code['TOPIC_LIST_FAIL']}, status=status.HTTP_200_OK)
 
         status_code['TOPIC_LIST_SUCCESS']['data'] = serializer.data
         return Response({'result' : status_code['TOPIC_LIST_SUCCESS']}, status=status.HTTP_200_OK)
@@ -387,8 +437,8 @@ class TopicListViewSet(ModelViewSet):
             return Response({'result': status_code['TOPIC_MADE_SUCCESS']}, status=status.HTTP_200_OK, headers=headers)
 
         except:
-            status_code['TOPIC_MADE_FAILURE']['data'] = serializer.errors
-            return Response({'result' : status_code['TOPIC_MADE_FAILURE']}, status=status.HTTP_200_OK)
+            status_code['TOPIC_MADE_FAIL']['data'] = serializer.errors
+            return Response({'result' : status_code['TOPIC_MADE_FAIL']}, status=status.HTTP_200_OK)
 
     # override
     # url에 입력한 group_id에 해당하는 Topic query set을 반환
@@ -448,7 +498,7 @@ class TopicDetailViewSet(ModelViewSet):
             return Response({'result' : status_code['TOPIC_GET_DETAIL_SUCCESS']}, status=status.HTTP_200_OK)
 
         except:
-            return Response({'result' : status_code['TOPIC_GET_DETAIL_FAILURE']} , status=status.HTTP_200_OK)
+            return Response({'result' : status_code['TOPIC_GET_DETAIL_FAIL']} , status=status.HTTP_200_OK)
 
     # detail [PUT] 토픽 이름 변경
     def update(self, request, *args, **kwargs):
@@ -465,8 +515,8 @@ class TopicDetailViewSet(ModelViewSet):
             serializer.save()
             status_code['TOPIC_MODIFY_SUCCESS']['data'] = serializer.data
             return Response({'result' : status_code['TOPIC_MODIFY_SUCCESS']}, status=status.HTTP_200_OK)
-        status_code['TOPIC_MODIFY_FAILURE']['data'] = serializer.errors
-        return Response({'result' : status_code['TOPIC_MODIFY_FAILURE']}, status=status.HTTP_200_OK)
+        status_code['TOPIC_MODIFY_FAIL']['data'] = serializer.errors
+        return Response({'result' : status_code['TOPIC_MODIFY_FAIL']}, status=status.HTTP_200_OK)
 
 
     # detail [DELETE] 토픽 삭제(기본 토픽은 삭제 불가)
@@ -516,8 +566,8 @@ class ChatRoomListViewSet(ModelViewSet):
             return Response({'result' : status_code['CHAT_LIST_SUCCESS']} , status=status.HTTP_200_OK)
 
         except:
-            status_code['CHAT_LIST_FAILURE']['data'] = serializer.errors
-            return Response({'result': status_code['CHAT_LIST_FAILURE']}, status=status.HTTP_200_OK)
+            status_code['CHAT_LIST_FAIL']['data'] = serializer.errors
+            return Response({'result': status_code['CHAT_LIST_FAIL']}, status=status.HTTP_200_OK)
 
 
     # list [POST] 해당 그룹의 채팅방 생성, POST로 받아온 participants를 채팅방의 멤버로 등록
@@ -559,8 +609,8 @@ class ChatRoomListViewSet(ModelViewSet):
             return Response({'result' : status_code['CHAT_MADE_SUCCESS']}, status=status.HTTP_200_OK, headers=headers)
 
         else:
-            status_code['CHAT_MADE_FAILURE']['data'] = serializer.errors
-            return Response({'result' : status_code['CHAT_MADE_FAILURE']} , status=status.HTTP_200_OK)
+            status_code['CHAT_MADE_FAIL']['data'] = serializer.errors
+            return Response({'result' : status_code['CHAT_MADE_FAIL']} , status=status.HTTP_200_OK)
 
     # override
     # url에 입력한 group_id에 해당하는 ChatRoom query set을 반환
@@ -632,7 +682,7 @@ class ChatRoomDetailViewSet(ModelViewSet):
             status_code['CHAT_GET_DETAIL_SUCCESS']['data'] = {'chatroom_info' : chatroom_serializer.data, 'chatroom_message' : chatroom_message_serializer.data}
             return Response({'result' : status_code['CHAT_GET_DETAIL_SUCCESS']}, status=status.HTTP_200_OK)
         except:
-            return Response({'result' : status_code['CHAT_GET_DETAIL_FAILURE']}, status=status.HTTP_200_OK)
+            return Response({'result' : status_code['CHAT_GET_DETAIL_FAIL']}, status=status.HTTP_200_OK)
 
     # detail [DELETE] 채팅방 삭제(기본 토픽은 삭제 불가)
     # TODO ChatRoomMember에서 제거
@@ -651,8 +701,8 @@ class ChatRoomDetailViewSet(ModelViewSet):
         try:
             return ChatRoom.objects.get(pk=pk)
         except ChatRoom.DoesNotExist:
-            status_code['CHAT_GET_DETAIL_FAILURE']['data'] = 'ChatRoom does not exist'
-            return Response({'result' : status_code['CHAT_GET_DETAIL_FAILURE']}, status=status.HTTP_200_OK)
+            status_code['CHAT_GET_DETAIL_FAIL']['data'] = 'ChatRoom does not exist'
+            return Response({'result' : status_code['CHAT_GET_DETAIL_FAIL']}, status=status.HTTP_200_OK)
 
     # override
     # url에 입력한 chatroom_id에 해당하는 ChatRoom query set을 반환
@@ -684,65 +734,66 @@ class ChatRoomInviteAPIView(ListAPIView):
         for participant in participants:
             ChatRoomMember.objects.create(user=participant, chatRoom=chatRoom)
 
-        return Response(status=status.HTTP_201_CREATED)
+        status_code['CHAT_INVITATION_SUCCESS']['data'] = participants.values()
+        return Response({'result' : status_code['CHAT_INVITATION_SUCCESS']},status=status.HTTP_200_OK)
 
 
 ##########################################################################
 
-class TopicFileUploadView(APIView):
-    queryset = TopicFile.objects.all()
-    # parser_classes = (FileUploadParser,)
-    parser_classes = (MultiPartParser, FormParser)
-    serializer_class = TopicFileUploadSerializer
-
-    def post(self, request, format=None, *args, **kwargs):
-        print("[[FileUploadView]] post")
-        print(request.data)
-
-        file = request.data['file']
-        print(file)
-        filename = file.name
-        print(filename)
-        user_id = request.data['user']
-        user = User.objects.get(pk=user_id)
-
-        topic_id = self.kwargs['topic_id']  # data in url
-        topic = Topic.objects.get(pk=topic_id)
-
-        # TopicMessage 저장 & Serializer 형태로 변환
-        topicMessage = TopicMessage.objects.create(user_id=user, topic_id=topic, contents=filename, is_file=True)
-        messages_serializer = TopicMessageSerializer(topicMessage)
-
-        # websocket으로 message send 하기
-        async_to_sync(channel_layer.group_send)(
-            topic.group_name,
-            {
-                "type": "chat.message",  # call chat_message method
-                "room_id": topic_id,
-                # "username": self.scope["user"].username,
-                "username": user.user_name,
-                "message": messages_serializer.data,
-            }
-        )
-
-        # TopicFile 저장
-        request.data['message'] = topicMessage.id
-        file_serializer = TopicFileUploadSerializer(data=request.data)
-
-        if file_serializer.is_valid():
-            file_serializer.save()
-            return Response(file_serializer.data, status=status.HTTP_201_CREATED)
-        else:
-            print("[[TopicFileUploadView]] file_serializer error")
-            return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-    def perform_create(self, serializer):
-        print("[[FileUploadView]] perform_create")
-        owner = User.objects.get(pk=self.request.data['owner'])
-        serializer.save(
-            owner=owner,
-            file=self.request.data.get('file')
-        )
+# class TopicFileUploadView(APIView):
+#     queryset = TopicFile.objects.all()
+#     # parser_classes = (FileUploadParser,)
+#     parser_classes = (MultiPartParser, FormParser)
+#     serializer_class = TopicFileUploadSerializer
+#
+#     def post(self, request, format=None, *args, **kwargs):
+#         print("[[FileUploadView]] post")
+#         print(request.data)
+#
+#         file = request.data['file']
+#         print(file)
+#         filename = file.name
+#         print(filename)
+#         user_id = request.data['user']
+#         user = User.objects.get(pk=user_id)
+#
+#         topic_id = self.kwargs['topic_id']  # data in url
+#         topic = Topic.objects.get(pk=topic_id)
+#
+#         # TopicMessage 저장 & Serializer 형태로 변환
+#         topicMessage = TopicMessage.objects.create(user_id=user, topic_id=topic, contents=filename, is_file=True)
+#         messages_serializer = TopicMessageSerializer(topicMessage)
+#
+#         # websocket으로 message send 하기
+#         async_to_sync(channel_layer.group_send)(
+#             topic.group_name,
+#             {
+#                 "type": "chat.message",  # call chat_message method
+#                 "room_id": topic_id,
+#                 # "username": self.scope["user"].username,
+#                 "username": user.user_name,
+#                 "message": messages_serializer.data,
+#             }
+#         )
+#
+#         # TopicFile 저장
+#         request.data['message'] = topicMessage.id
+#         file_serializer = TopicFileUploadSerializer(data=request.data)
+#
+#         if file_serializer.is_valid():
+#             file_serializer.save()
+#             return Response(file_serializer.data, status=status.HTTP_201_CREATED)
+#         else:
+#             print("[[TopicFileUploadView]] file_serializer error")
+#             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+#
+#     def perform_create(self, serializer):
+#         print("[[FileUploadView]] perform_create")
+#         owner = User.objects.get(pk=self.request.data['owner'])
+#         serializer.save(
+#             owner=owner,
+#             file=self.request.data.get('file')
+#         )
 
 
 # class FileUploadViewSet(ModelViewSet):

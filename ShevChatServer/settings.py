@@ -97,6 +97,7 @@ INSTALLED_APPS = [
 
     'chat',
     'AuthSer',
+    'FileServerModel',
 ]
 
 MIDDLEWARE = [
@@ -107,6 +108,9 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    'chat.custom_middle.TokenMiddleware',
+
 ]
 
 ROOT_URLCONF = 'ShevChatServer.urls'
@@ -134,25 +138,16 @@ WSGI_APPLICATION = 'ShevChatServer.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.11/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'shevdb', # DB명
-        'USER' : 'yejin', # 데이터베이스 계정
+        'USER' : 'root', # 데이터베이스 계정
         'PASSWORD' : 'yejin', # 비밀번호
         'HOST' : '192.168.0.24', # 데이터베이스 주소
         'PORT' : '3306', # 포트번호
     }
 }
-
-#
-# DATABASES = {
-#     'default': {
-#         'ENGINE': 'django.db.backends.sqlite3',
-#         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
-#     }
-# }
 
 # Password validation
 # https://docs.djangoproject.com/en/1.11/ref/settings/#auth-password-validators

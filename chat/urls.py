@@ -1,5 +1,6 @@
 from django.conf.urls import include, url
 from rest_framework.urlpatterns import format_suffix_patterns
+from . import views
 
 from .views import (
     GroupListAPIView,
@@ -17,7 +18,7 @@ from .views import (
     ChatRoomDetailViewSet,
     ChatRoomInviteAPIView,
 
-    TopicFileUploadView,
+    # TopicFileUploadView,
 )
 
 topic_list = TopicListViewSet.as_view({
@@ -93,11 +94,11 @@ urlpatterns = format_suffix_patterns([
 
     # api/group/fileupload
     # url(r'^fileupload/$', TopicFileUploadView.as_view()),
-
-    # api/group/:group_id/topics/:topics_id/upload/
-    url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)/upload/$', TopicFileUploadView.as_view()),
-    # api/group/:group_id/topics/:topics_id/download/:message_id
-    url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)/download/(?P<message_id>\d+)/$', TopicFileUploadView.as_view())
+    #
+    # # api/group/:group_id/topics/:topics_id/upload/
+    # url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)/upload/$', TopicFileUploadView.as_view()),
+    # # api/group/:group_id/topics/:topics_id/download/:message_id
+    # url(r'^(?P<group_id>\d+)/topics/(?P<topic_id>\d+)/download/(?P<message_id>\d+)/$', TopicFileUploadView.as_view())
 
     # TODO fileserver로 이동
     # api/upload/topics/:topic_id/
