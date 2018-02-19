@@ -704,3 +704,26 @@ class TopicFileView(APIView):
         return JsonResponse({'result': status_code['SUCCESS']}, status=status.HTTP_200_OK)
 
 
+class ChatRoomFileView(APIView):
+
+    def post(self, request):
+        print("[[ChatRoomFileView]] post")
+        room_id = request.data['room_id']
+        username = request.data['username']
+        message = request.data['message']
+
+        chatroom = ChatRoom.objects.get(pk=room_id)
+
+        # websocket으로 message send 하기
+        async_to_sync(channel_layer.group_send)(
+            chatroom.group_name,
+            {
+                "type": "chat.message",  # call chat_message method
+                "room_id": room_id,
+                # "username": self.scope["user"].username,
+                "username": username,
+                "message": message,
+            }
+        )
+        status_code['SUCCESS']['data'] = const_value['SESSION_EXIST']
+        return JsonResponse({'result': status_code['SUCCESS']}, status=status.HTTP_200_OK)

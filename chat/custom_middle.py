@@ -18,7 +18,9 @@ class TokenMiddleware(object):
         allowed_ips = ['192.168.0.24', '0.0.0.0']
         ip = request.META.get('REMOTE_ADDR')
 
-        if request.path.startswith('/api/group/join/') or request.path.startswith('/api/group/topicfile/'):
+        if request.path.startswith('/api/group/join/') \
+                or request.path.startswith('/api/group/topicfile/') \
+                or request.path.startswith('/api/group/chatroomfile/'):
             response = self.get_response(request)
             return response
 

@@ -130,7 +130,8 @@ class ChatRoomMessageSerializer(ModelSerializer):
 
     class Meta:
         model = ChatRoomMessage
-        fields = ('sender', 'chatRoom', 'contents', 'created_time')
+        fields = '__all__'
+        # fields = ('sender', 'chatRoom', 'contents', 'created_time')
 
     def get_sender(self, obj):
         return obj.user.user_name

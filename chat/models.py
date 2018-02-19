@@ -216,6 +216,7 @@ class ChatRoomMessage(models.Model):
         related_name="chatRoomMessages"
     )
     contents = models.TextField()  # 메시지 내용
+    is_file = models.BooleanField(default=False)  # file이면 True
     created_time = models.DateTimeField('Create Time', auto_now_add=True)
 
     class Meta:

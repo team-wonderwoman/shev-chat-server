@@ -146,8 +146,9 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         room_id = content['room']  # 들어온 topic/chatroom의 pk
         sender_id = content['sender']
         message = content['message']
-        print("ROOM_ACCESS_DENIED check")
-        print(self.rooms)
+        print("--ROOM_ACCESS_DENIED check--")
+        print("self.rooms: " + str(self.rooms))
+        print("room_id: " + str(room_id))
 
         # Check they are in this room
         if room_id not in self.rooms:
