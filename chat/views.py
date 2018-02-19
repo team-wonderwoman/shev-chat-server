@@ -1,7 +1,7 @@
-import json, requests
+import os,json, requests
 from common.const import const_value, status_code
 
-from django.http import Http404
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 # from .permissions import IsOwnerOrReadOnly
 from django.utils.encoding import force_text
@@ -22,6 +22,7 @@ from rest_framework.generics import ListAPIView
 from channels.layers import get_channel_layer
 from asgiref.sync import async_to_sync
 
+from ShevChatServer.settings import MEDIA_ROOT
 from AuthSer.serializers import UserModelSerializer
 from AuthSer.models import User
 from .sendmail import send_verification_mail, decode_verify_token
@@ -48,7 +49,8 @@ from .serializers import (
     ChatRoomMessageSerializer,
     ChatRoomMemberSerializer,
 
-    # TopicFileUploadSerializer,
+    TopicFileUploadSerializer,
+    TopicFileDownloadSerializer,
 )
 from .consumers import ChatConsumer
 
@@ -739,7 +741,7 @@ class ChatRoomInviteAPIView(ListAPIView):
 
 
 ##########################################################################
-
+#
 # class TopicFileUploadView(APIView):
 #     queryset = TopicFile.objects.all()
 #     # parser_classes = (FileUploadParser,)
@@ -748,12 +750,11 @@ class ChatRoomInviteAPIView(ListAPIView):
 #
 #     def post(self, request, format=None, *args, **kwargs):
 #         print("[[FileUploadView]] post")
-#         print(request.data)
 #
 #         file = request.data['file']
-#         print(file)
+#         print("file: " + str(file))
 #         filename = file.name
-#         print(filename)
+#         print("filename: " + str(filename))
 #         user_id = request.data['user']
 #         user = User.objects.get(pk=user_id)
 #
@@ -787,28 +788,29 @@ class ChatRoomInviteAPIView(ListAPIView):
 #             print("[[TopicFileUploadView]] file_serializer error")
 #             return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 #
-#     def perform_create(self, serializer):
-#         print("[[FileUploadView]] perform_create")
-#         owner = User.objects.get(pk=self.request.data['owner'])
-#         serializer.save(
-#             owner=owner,
-#             file=self.request.data.get('file')
-#         )
-
-
-# class FileUploadViewSet(ModelViewSet):
-#     queryset = FileUpload.objects.all()
-#     serializer_class = FileUploadSerializer
-#     parser_classes = (MultiPartParser, FormParser,)
 #
-#     def perform_create(self, serializer):
-#         serializer.save(owner=self.request.user,
-#                         datafile=self.request.data.get('datafile'))
-
-# def post(self, request, *args, **kwargs):
-#     file_serializer = FileSerializer(data=request.data)
-#     if file_serializer.is_valid():
-#       file_serializer.save()
-#       return Response(file_serializer.data, status=status.HTTP_201_CREATED)
-#     else:
-#       return Response(file_serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+# class TopicFileDownloadView(APIView):
+#     # queryset = TopicFile.objects.all()
+#     serializer_class = TopicFileDownloadSerializer
+#
+#     def get(self, *args, **kwargs):
+#         print("[[TopicFileDownloadView]] get")
+#         message_id = self.kwargs['message_id']  # data in url
+#
+#         # message_id에 해당하는 TopicMessage의 TopicFile을 가져온다
+#         topic_message = TopicMessage.objects.get(pk=message_id)
+#         topic_file = TopicFile.objects.get(message=topic_message)
+#         topic_filename = topic_file.get_filename()
+#
+#         # 현재 프로젝트 최상위 (부모폴더) 밑에 있는 'topic_filename' 파일
+#         filepath = os.path.join(MEDIA_ROOT, topic_filename)
+#         print("filepath: " + str(filepath))
+#         filename = os.path.basename(filepath)  # 파일명만 반환
+#         print("filename: " + str(filename))
+#
+#         with open(filepath, 'rb') as f:
+#             response = HttpResponse(f, content_type='application/octet-stream')
+#             # 필요한 응답헤더 세팅
+#             response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+#             return response
+#

@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/ShevChatServer.iml" filepath="$PROJECT_DIR$/.idea/ShevChatServer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/../ShevCommon/.idea/ShevCommon.iml" filepath="$PROJECT_DIR$/../ShevCommon/.idea/ShevCommon.iml" />
     </modules>
   </component>
 </project>

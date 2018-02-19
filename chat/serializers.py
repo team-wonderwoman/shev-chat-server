@@ -146,18 +146,16 @@ class ChatRoomMessageSerializer(ModelSerializer):
 ####################################################################
 #
 # class TopicFileUploadSerializer(ModelSerializer):
-#     # sender = SerializerMethodField()
-#
-#     # user = serializers.SlugRelatedField(
-#     #     read_only=True,
-#     #     slug_field='id'
-#     # )
 #
 #     class Meta:
 #         model = TopicFile
 #         fields = ('user', 'message', 'file')
-#         # fields = ('user', 'file', )
 #         read_only_fields = ('created_time', )
 #
-#     # def get_sender(self, obj):
-#     #     return obj.user.user_name
+#
+# class TopicFileDownloadSerializer(ModelSerializer):
+#
+#     class Meta:
+#         model = TopicFile
+#         fields = ('user', 'message', 'file')
+#         read_only_fields = ('created_time', )

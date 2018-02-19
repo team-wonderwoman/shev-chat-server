@@ -102,5 +102,10 @@ ENV/
 # mypy
 .mypy_cache/
 
+# media file
+media/
+MEDIA/
 
+# IDEA config files
+.idea/
 
