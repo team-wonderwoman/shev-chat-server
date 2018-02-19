@@ -151,14 +151,17 @@ class TopicFile(models.Model):
         related_name="topic_files"
     )
     file = models.FileField()
+    origin_filename = models.TextField(null=False, blank=True)
     created_time = models.DateTimeField('Create Time', auto_now_add=True)
+
+    def get_origin_filename(self):
+        return self.origin_filename
 
     def get_filename(self):
         filename = os.path.basename(self.file.name)
         print("[[TopicFile]] get_filename")
         print(filename)
         return filename
-
 
 ##############################################################################################
 

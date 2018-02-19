@@ -17,6 +17,7 @@ from .views import (
     ChatRoomDetailViewSet,
     ChatRoomInviteAPIView,
 
+    TopicFileView,
     TopicFileUploadView,
     TopicFileDownloadView,
 )
@@ -92,8 +93,8 @@ urlpatterns = format_suffix_patterns([
 
     ###########################################################################################
 
-    # api/group/fileupload
-    # url(r'^fileupload/$', TopicFileUploadView.as_view()),
+    # api/group/topicfile
+    url(r'^group/topicfile$', TopicFileView.as_view()),
 
     # api/group/upload/topics/:topics_id/
     url(r'^upload/topics/(?P<topic_id>\d+)/$', TopicFileUploadView.as_view()),

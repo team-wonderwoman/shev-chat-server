@@ -2,7 +2,7 @@ import json
 import os
 from common.const import const_value, status_code
 
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, render
 # from .permissions import IsOwnerOrReadOnly
 from django.utils.encoding import force_text
@@ -703,8 +703,8 @@ class TopicFileUploadView(APIView):
 
         file = request.data['file']
         print("file: " + str(file))
-        filename = file.name
-        print("filename: " + str(filename))
+        origin_filename = file.name
+        print("origin_filename: " + str(origin_filename))
         user_id = request.data['user']
         user = User.objects.get(pk=user_id)
 
@@ -712,7 +712,11 @@ class TopicFileUploadView(APIView):
         topic = Topic.objects.get(pk=topic_id)
 
         # TopicMessage 저장 & Serializer 형태로 변환
-        topicMessage = TopicMessage.objects.create(user_id=user, topic_id=topic, contents=filename, is_file=True)
+        topicMessage = TopicMessage.objects.create(
+            user_id=user,
+            topic_id=topic,
+            contents=origin_filename,
+            is_file=True)
         messages_serializer = TopicMessageSerializer(topicMessage)
 
         # websocket으로 message send 하기
@@ -729,6 +733,7 @@ class TopicFileUploadView(APIView):
 
         # TopicFile 저장
         request.data['message'] = topicMessage.id
+        request.data['origin_filename'] = origin_filename
         file_serializer = TopicFileUploadSerializer(data=request.data)
 
         if file_serializer.is_valid():
@@ -750,55 +755,45 @@ class TopicFileDownloadView(APIView):
         # message_id에 해당하는 TopicMessage의 TopicFile을 가져온다
         topic_message = TopicMessage.objects.get(pk=message_id)
         topic_file = TopicFile.objects.get(message=topic_message)
-        topic_filename = topic_file.get_filename()
+        topic_filename = topic_file.get_filename()  # 저장된 파일명 반환
+        print("topic_filename: " + str(topic_filename))
 
         # 현재 프로젝트 최상위 (부모폴더) 밑에 있는 'topic_filename' 파일
         filepath = os.path.join(MEDIA_ROOT, topic_filename)
         print("filepath: " + str(filepath))
-        filename = os.path.basename(filepath)  # 파일명만 반환
-        print("filename: " + str(filename))
+        origin_filename2 = topic_file.get_origin_filename()  # 원래의 파일명 반환
+        origin_filename = topic_file.origin_filename  # 원래의 파일명 반환
+        print("origin_filename2: " + str(origin_filename2))
+        print("origin_filename: " + str(origin_filename))
 
         with open(filepath, 'rb') as f:
             response = HttpResponse(f, content_type='application/octet-stream')
             # 필요한 응답헤더 세팅
-            response['Content-Disposition'] = 'attachment; filename="{}"'.format(filename)
+            response['Content-Disposition'] = 'attachment; filename="{}"'.format(origin_filename)
+            response['Access-Control-Expose-Headers'] = 'Content-Disposition'
             return response
 
-# class ImageUploadViewSet(APIView):
-#     queryset = TopicFile.objects.all()
-#     serializer_class =TopicFileDownloadSerializer
-#
-#     @detail_route(methods=['get'])
-#     def imagefile(self, request, pk=None):
-#         r = self.get_object()
-#         # 확장자 추출
-#         ext = '*'
-#         if r.imagefile.path:
-#             ext = r.imagefile.path.split('.')[-1]
-#         content_type = 'image/' + ext
-#         # 다운로드용 Response 반환
-#         response = FileResponse(open(r.imagefile.path, 'rb'), content_type=content_type)
-#         return response
 
-# class ImagesViewSet(viewsets.ModelViewSet):
-#     queryset = Image.objects.all()
-#     serializer_class = ImageSerializer
+class TopicFileView(APIView):
 
-#     def download_image_view(request, image_id):
-#         image = Image.objects.get(id=image_id)
-#         response = HttpResponse()
-#         response['X-Accel-Redirect'] = image.image_file.url
-#         response['Content-Disposition'] = 'attachment; filename="{}"'.format(image.image_file.name)
-#         return response
-#
-#     def get
-#         template = webodt.ODFTemplate('test.odt')
-#         queryset = Pupils.objects.get(id=kwargs['pk'])
-#         serializer = StudentSerializer(queryset)
-#         context = dict(serializer.data)
-#         document = template.render(Context(context))
-#         doc = converter().convert(document, format='doc')
-#         p = u'docs/cards/%s/%s_%s.doc' % (datetime.now().date(), context[u'surname'], context[u'name'])
-#         path = default_storage.save(p, doc)
-#         return response.Response(u'/media/' + path)
+    def post(self, request):
+        print("[[TopicFileView]] post")
+        room_id = request.POST['room_id']
+        username = request.POST['username']
+        message = request.POST['message']
 
+        topic = Topic.objects.get(pk=room_id)
+
+        # websocket으로 message send 하기
+        async_to_sync(channel_layer.group_send)(
+            topic.group_name,
+            {
+                "type": "chat.message",  # call chat_message method
+                "room_id": room_id,
+                # "username": self.scope["user"].username,
+                "username": username,
+                "message": message,
+            }
+        )
+        status_code['SUCCESS']['data'] = const_value['SESSION_EXIST']
+        return JsonResponse({'result': status_code['SUCCESS']}, status=status.HTTP_200_OK)
