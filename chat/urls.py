@@ -18,8 +18,6 @@ from .views import (
     ChatRoomInviteAPIView,
 
     TopicFileView,
-    TopicFileUploadView,
-    TopicFileDownloadView,
 )
 
 topic_list = TopicListViewSet.as_view({
@@ -93,19 +91,8 @@ urlpatterns = format_suffix_patterns([
 
     ###########################################################################################
 
-    # api/group/topicfile
-    url(r'^group/topicfile$', TopicFileView.as_view()),
+    # api/group/topicfile [POST]
+    # topicfile에 관한 데이터를 websocket으로 같은 그룹 모두에게 전달한다
+    url(r'^topicfile/$', TopicFileView.as_view()),
 
-    # api/group/upload/topics/:topics_id/
-    url(r'^upload/topics/(?P<topic_id>\d+)/$', TopicFileUploadView.as_view()),
-    # api/group/download/topics/:topics_id/:message_id
-    url(r'^download/topics/(?P<topic_id>\d+)/(?P<message_id>\d+)/$', TopicFileDownloadView.as_view(), name='download_topicfile')
-
-    # TODO fileserver로 이동
-    # api/upload/topics/:topic_id/
-    # [POST] user : user_pk
-
-    # TODO fileserver로 이동
-    # api/download/topics/:topic_id/:message_id
-    #
 ])

@@ -1,12 +1,7 @@
-import json
-import os
 from django.db import models
 from django.utils.six import python_2_unicode_compatible
 
 from AuthSer.models import User
-
-import channels
-from .settings import MSG_TYPE_MESSAGE
 
 
 class Group(models.Model):
@@ -138,30 +133,6 @@ class TopicMessage(models.Model):
             'topic_id': self.topic_id,
             'created_time': self.formatted_created_time
         }
-
-
-@python_2_unicode_compatible
-class TopicFile(models.Model):
-    user = models.ForeignKey(
-        User,
-        related_name="topic_files"
-    )
-    message = models.ForeignKey(
-        TopicMessage,
-        related_name="topic_files"
-    )
-    file = models.FileField()
-    origin_filename = models.TextField(null=False, blank=True)
-    created_time = models.DateTimeField('Create Time', auto_now_add=True)
-
-    def get_origin_filename(self):
-        return self.origin_filename
-
-    def get_filename(self):
-        filename = os.path.basename(self.file.name)
-        print("[[TopicFile]] get_filename")
-        print(filename)
-        return filename
 
 ##############################################################################################
 

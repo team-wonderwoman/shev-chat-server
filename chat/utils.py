@@ -51,7 +51,6 @@ def get_previous_messages(room_id, user, room_type):
                 'messages_serializer': messages_serializer.data,
             }
             print("[[get_previous_messages]] topics")
-            print(response_json_data)
         elif room_type == "chatrooms":
             room = ChatRoom.objects.get(pk=room_id)
             # We want to show the last 100 messages, ordered most-recent-last
@@ -66,14 +65,12 @@ def get_previous_messages(room_id, user, room_type):
                 'messages_serializer': messages_serializer.data,
             }
             print("[[get_previous_messages]] chatrooms")
-            print(response_json_data)
             pass
         else:
             response_json_data = {
                 'messages_serializer': [],
             }
             print("[[get_previous_messages]] None")
-            print(response_json_data)
 
     except Topic.DoesNotExist:
         raise ClientError("Topic ROOM_INVALID")
@@ -106,7 +103,6 @@ def save_message(room_id, sender_id, room_type, message):
                 'sender_name': sender.user_name,
                 'messages_serializer': messages_serializer.data
             }
-            print(response_json_data)
 
         elif room_type == "chatrooms":
             room = ChatRoom.objects.get(pk=room_id)
@@ -117,7 +113,6 @@ def save_message(room_id, sender_id, room_type, message):
                 'sender_name': sender.user_name,
                 'messages_serializer': messages_serializer.data
             }
-            print(response_json_data)
 
             pass
         else:
