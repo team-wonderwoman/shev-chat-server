@@ -49,8 +49,8 @@ from .serializers import (
     ChatRoomMessageSerializer,
     ChatRoomMemberSerializer,
 
-    TopicFileUploadSerializer,
-    TopicFileDownloadSerializer,
+    # TopicFileUploadSerializer,
+    # TopicFileDownloadSerializer,
 )
 from .consumers import ChatConsumer
 
@@ -186,7 +186,7 @@ class GroupInviteAPIView(APIView):
     def post(self, request, *args, **kwargs):
         userId = self.kwargs['user_id']
         print(request.data['group_id'])
-        # 그룹 이름
+        # 그룹 아이디
         groupId = request.data['group_id']
         # 그룹 참여자의 이메일
         participants = request.data['members']
@@ -197,12 +197,15 @@ class GroupInviteAPIView(APIView):
         # DB에서 그룹 참여자 pk 가져오기
         try:
             queryset = User.objects.get(user_email=participants)
+            group_query = Group.objects.get(pk=groupId)
             #qs = Group.objects.get(pk=groupId)
             # print("qs는?")
             # print(qs.id)
             #group_name = qs.group_name
             print("qs.group_id", end=' ')
             print(groupId)
+            print("qs.group_name", end=' ')
+            print(group_query)
 
             request.data['user_id'] = queryset.id
             request.data['is_active'] = False
@@ -211,9 +214,11 @@ class GroupInviteAPIView(APIView):
             status_code['GROUP_INVITATION_FAIL']['data'] = request.data
             return Response({'result': status_code['GROUP_INVITATION_FAIL']}, status=status.HTTP_200_OK)
 
-
         # 이메일보내기
-        send_verification_mail(groupId, participants, queryset)
+        send_verification_mail(group_query, participants, queryset)
+
+        # # 이메일보내기
+        # send_verification_mail(groupId, participants, queryset)
 
         print("이메일 보내기 완료")
 
@@ -228,53 +233,6 @@ class GroupInviteAPIView(APIView):
             return Response({'result': status_code['GROUP_INVITATION_FAIL']},
                             status=status.HTTP_200_OK)
 
-# @shortcircuitmiddleware
-# # 그룹 초대 메일 인증 처리
-# def group_join(request):
-#     # [GET] 이메일 인증 처리 - 사용자가 메일로 발송된 url 클릭 시 is_activate 필드 True로 바꿈
-#     if request.method=='GET':
-#
-#         #uid = force_text(urlsafe_base64_decode(self.kwargs['uid64']))  # url에 있는 base64 인코딩 된 uid를 decode해서 가져옴
-#         #verify_token = force_text(urlsafe_base64_decode(self.kwargs['verify_token'])) # url에 있는 token을 decode해서 가져옴
-#
-#         #print('Group_inviteAPIView_uid : %s, verify_token : %s' % (uid, verify_token))
-#
-#         #uid = int(uid)
-#         #try:
-#             # TODO query 지우기
-#         #     query = User.objects.get(id=uid) # 인증할 사용자의 data를 가져옴
-#         #
-#         # except query is None:
-#         #     status_code['GROUP_INVITATION_ACTIVATE_FAIL']['data'] = "User does not exist"
-#         #     return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAIL']}, status=status.HTTP_200_OK)
-#         #
-#         # verify_token = decode_verify_token(verify_token) # 그룹 초대 인증 토큰 확인 - 그룹 아이디 꺼내옴
-#         #
-#         # group = Group.objects.get(pk=verify_token)
-#         #
-#         # print("group_id??", end='')
-#         # print(group)
-#
-#
-#         try:
-#             # group_active_qs = GroupMember.objects.filter(group_id=group.id, user_id=uid)
-#             # group_active_qs.update(is_active=True)
-#             #status_code['GROUP_INVITATION_ACTIVATE_SUCCESS']['data'] = group_active_qs.values()
-#             return Response(
-#                 {'result': status_code['GROUP_INVITATION_ACTIVATE_SUCCESS']},
-#                 status=status.HTTP_200_OK)
-#
-#         #except group_active_qs is None:
-#         except:
-#             #status_code['GROUP_INVITATION_ACTIVATE_FAIL']['data'] = group_active_qs.values()
-#             return Response({'result': status_code['GROUP_INVITATION_ACTIVATE_FAIL']},status=status.HTTP_200_OK)
-#
-# def shortcircuitmiddleware(f):
-#     def _shortcircuitmiddleware(*args, **kwargs):
-#         return f(*args, **kwargs)
-#     return _shortcircuitmiddleware
-
-
 # 그룹 초대 메일 인증 처리
 class GroupJoinAPIView(APIView):
 
@@ -288,7 +246,6 @@ class GroupJoinAPIView(APIView):
 
         uid = int(uid)
         try:
-            # TODO query 지우기
             query = User.objects.get(id=uid) # 인증할 사용자의 data를 가져옴
 
         except query is None:
@@ -297,19 +254,27 @@ class GroupJoinAPIView(APIView):
 
         verify_token = decode_verify_token(verify_token) # 그룹 초대 인증 토큰 확인 - 그룹 아이디 꺼내옴
 
+        # send_data = {'token_groupId' : verify_token , 'uid' : uid}
+        # r = requests.post("http://192.168.0.24:8001/session/create/", data=send_data)
+        #
+        # if r.json().get('result').get('code') == 1:  # 세션이 있는 경우
+
         group = Group.objects.get(pk=verify_token)
 
         print("group_id??", end='')
-        print(group)
+        print(group.id)
+        group_name = group.group_name
+
+        print(group.group_name)
 
 
         try:
             group_active_qs = GroupMember.objects.filter(group_id=group.id, user_id=uid)
             group_active_qs.update(is_active=True)
             status_code['GROUP_INVITATION_ACTIVATE_SUCCESS']['data'] = group_active_qs.values()
+            return render(request, 'chat/invitation.html' , {'group_name' : group_name} )
             return Response(
-                {'result': status_code['GROUP_INVITATION_ACTIVATE_SUCCESS']},
-                status=status.HTTP_200_OK)
+                {'result': status_code['GROUP_INVITATION_ACTIVATE_SUCCESS']}, status=status.HTTP_200_OK)
 
         except group_active_qs is None:
             status_code['GROUP_INVITATION_ACTIVATE_FAIL']['data'] = group_active_qs.values()

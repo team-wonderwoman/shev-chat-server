@@ -17,15 +17,10 @@ class TokenMiddleware(object):
         allowed_ips = ['192.168.0.24', '0.0.0.0']
         ip = request.META.get('REMOTE_ADDR')
 
-        print(dir(request))
-        print(dir(request.META))
-
+        print("뭐임")
         print(request.path)
-        print(dir(request.path))
 
-        #print(request.path)
-
-        if request.path.startswith('/api/group/join/'):
+        if request.path.startswith('/api/group/join/') or request.path.startswith('/favicon.ico'):
             response = self.get_response(request)
             return response
 

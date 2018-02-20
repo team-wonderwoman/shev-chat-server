@@ -61,15 +61,19 @@ urlpatterns = format_suffix_patterns([
     url(r'^(?P<group_id>\d+)/(?P<user_id>\d+)/$', GroupDetailAPIView.as_view(), name='group_detail'),
 
     # api/group/:user_id/invitation [POST]
+    # 그룹에 회원을 초대한다
     url(r'^(?P<user_id>\d+)/invitation/$', GroupInviteAPIView.as_view(), name='group_invite'),
 
     # api/group/join/:uid64/:verify_token [GET]
+    # 초대된 회원을 인증한다
     url(r'^join/(?P<uid64>[0-9A-Za-z_\-]+)/(?P<verify_token>[0-9A-Za-z]+)/$',GroupJoinAPIView.as_view(), name='group_join'),
 
     # api/group/:user_id/delete/ [DELETE]
+    # 그룹을 삭제한다
     url(r'^(?P<user_id>\d+)/(?P<group_id>\d+)/delete/$', GroupDeleteAPIView.as_view(), name='group_delete'),
 
     # api/group/:user_id/exit/ [DELETE]
+    # 그룹을 나간다
     url(r'^(?P<user_id>\d+)/(?P<group_id>\d+)/exit/$', GroupExitAPIView.as_view(), name='group_exit'),
 
     ###########################################################################################
