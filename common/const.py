@@ -6,14 +6,14 @@ const_value = {
     'SESSION_DOES_NOT_EXIST': 'Session does not exist',
     'SESSION_EXPIRE': 'Session expired',
     'TOKEN_DOES_NOT_EXIST': 'Token does not exist',
-    'INVITATION_LINK' : 'http://192.168.0.24:9002/api/group/invitation/',
+    'INVITATION_LINK': 'http://192.168.0.24:9002/api/group/invitation/',
     'PARTICIPATION_LINK': 'http://192.168.0.24:9002/api/group/join/',
-    'CONFIRMATION_LINK' : 'http://192.168.0.24:8000/api/accounts/signup/',
+    'CONFIRMATION_LINK': 'http://192.168.0.24:8000/api/accounts/signup/',
 }
 
 status_code = {
-    'SUCCESS' :{
-            "code" : 1,
+    'SUCCESS':{
+            "code": 1,
             "msg": "Request Sucess",
             "data": ""
     },
@@ -24,7 +24,7 @@ status_code = {
         "data": ""
     },
 
-    'SIGNUP_SUCCESS' : {
+    'SIGNUP_SUCCESS': {
         "code": 1200,
         "msg": "SignUp Success",
         "data": ""
@@ -36,7 +36,7 @@ status_code = {
         "data": ""
     },
 
-    'SIGNUP_INVALID_EMAIL' : {
+    'SIGNUP_INVALID_EMAIL': {
         "code": 1402,
         "msg": "SignUp Invalid Email",
         "data": ""
@@ -54,74 +54,74 @@ status_code = {
     },
 
 
-    'LOGIN_SUCCESS' : {
-        "code" : 2200,
-        "msg" : "Login success",
-        "data" : ""
+    'LOGIN_SUCCESS': {
+        "code": 2200,
+        "msg": "Login success",
+        "data": ""
     },
-    'LOGIN_WRONG_PARAMETER' : {
-        "code" : 2401,
-        "msg" : "Login Wrong Parameter",
-        "data" : ""
+    'LOGIN_WRONG_PARAMETER': {
+        "code": 2401,
+        "msg": "Login Wrong Parameter",
+        "data": ""
     },
-    'LOGIN_INVALID_EMAIL' : {
-        "code" : 2402,
-        "msg" : "Login Invalid Email",
-        "data" : ""
+    'LOGIN_INVALID_EMAIL': {
+        "code": 2402,
+        "msg": "Login Invalid Email",
+        "data": ""
     },
     'LOGIN_INVALID_PASSWORD': {
         "code": 2403,
         "msg": "Login Invalid Password",
         "data": ""
     },
-    'LOGIN_SESSION_EXISTS' : {
-        "code" : 2304,
-        "msg" : "Session Exists",
-        "data" : ""
+    'LOGIN_SESSION_EXISTS': {
+        "code": 2304,
+        "msg": "Session Exists",
+        "data": ""
     },
 
-    'LOGOUT_SUCCESS' : {
-        "code" : 3200,
-        "msg" : "Logout Success",
-        "data" : ""
+    'LOGOUT_SUCCESS': {
+        "code": 3200,
+        "msg": "Logout Success",
+        "data": ""
     },
-    'LOGOUT_FAIL' : {
-        "code" : 3401,
-        "msg" : "Logout Failure",
-        "data" : ""
-    },
-
-    'USER_INFO_GET_SUCCESS' : {
-        "code" : 4200,
-        "msg" : "User information Retrieve",
-        "data" : ""
-    },
-    'USER_INFO_GET_FAIL' : {
-        "code" : 4401,
-        "msg" : "User information retrieve fail",
-        "data" : ""
-    },
-    'USER_INFO_MODIFY_SUCCESS' : {
-        "code" : 4202,
-        "msg" : "User information modified success",
-        "data" : ""
-    },
-    'USER_INFO_MODIFY_FAIL' : {
-        "code" : 4403,
-        "msg" : "User information modification failure",
-        "data" : ""
+    'LOGOUT_FAIL': {
+        "code": 3401,
+        "msg": "Logout Failure",
+        "data": ""
     },
 
-
-    'GROUP_MADE_SUCCESS' : {
-        "code" : 5200,
-        "msg" : "New Group is made",
-        "data" : ""
+    'USER_INFO_GET_SUCCESS': {
+        "code": 4200,
+        "msg": "User information Retrieve",
+        "data": ""
     },
-    'GROUP_LIST_SUCCESS' : {
-        "code" : 5201,
-        "msg" : "Group list is retreived",
-        "data" : ""
+    'USER_INFO_GET_FAIL': {
+        "code": 4401,
+        "msg": "User information retrieve fail",
+        "data": ""
+    },
+    'USER_INFO_MODIFY_SUCCESS': {
+        "code": 4202,
+        "msg": "User information modified success",
+        "data": ""
+    },
+    'USER_INFO_MODIFY_FAIL': {
+        "code": 4403,
+        "msg": "User information modification failure",
+        "data": ""
+    },
+
+
+    'GROUP_MADE_SUCCESS': {
+        "code": 5200,
+        "msg": "New Group is made",
+        "data": ""
+    },
+    'GROUP_LIST_SUCCESS': {
+        "code": 5201,
+        "msg": "Group list is retreived",
+        "data": ""
     },
     'GROUP_MEMBER_GET_SUCCESS': {
         "code": 5202,
@@ -197,9 +197,9 @@ status_code = {
 
 
     'TOPIC_MADE_SUCCESS': {
-    "code": 6200,
-    "msg": "New Topic is made",
-    "data": ""
+        "code": 6200,
+        "msg": "New Topic is made",
+        "data": ""
     },
     'TOPIC_LIST_SUCCESS': {
         "code": 6201,
@@ -366,6 +366,17 @@ status_code = {
     'CHAT_GET_DETAIL_FAIL': {
         "code": 7407,
         "msg": "Get Chat detail Fail",
+        "data": ""
+    },
+
+    'WEBSOCKET_SEND_SUCCESS': {
+        "code": 8200,
+        "msg": "Websocket Send Success",
+        "data": ""
+    },
+    'WEBSOCKET_SEND_FAIL': {
+        "code": 8400,
+        "msg": "Websocket Send Fail",
         "data": ""
     },
 }

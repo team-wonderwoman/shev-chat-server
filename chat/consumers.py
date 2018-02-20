@@ -44,8 +44,10 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         """
         # Messages will have a "command" key we can switch on
         print("============receive_json============")
-        print("receive_json_data: " + str(content))
+
         command = content.get("command", None)  # client에서 보내준 'command' data를 추출
+        print("receive_json_comman: " + str(command))
+        print("receive_json_data: " + str(content))
         try:
             if command == "join":
                 # Make them join the room
@@ -216,6 +218,21 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
                 "room": event["room_id"],
                 "username": event["username"],
                 "message": event["message"],
+            },
+        )
+
+    async def chat_info(self, event):
+        """
+        Called when someone has info our chat.
+        """
+        print("============chat_info============")
+        # Send a message down to the client
+        await self.send_json(
+            {
+                "msg_type": settings.MSG_TYPE_MESSAGE,
+                "room_id": event["room_id"],
+                "room_name": event["room_name"],
+                "room_type": event["room_type"],
             },
         )
 

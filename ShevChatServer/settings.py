@@ -109,7 +109,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 
-    'chat.custom_middle.TokenMiddleware',
+    # 'chat.custom_middle.TokenMiddleware',
 
 ]
 

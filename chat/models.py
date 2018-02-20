@@ -77,7 +77,7 @@ class Topic(models.Model):
         messages as they are generated.
         """
         print("============group_name============" + str(self.id))
-        return "room-%s" % self.id
+        return "topicroom-%s" % self.id
 
 
 # @python_2_unicode_compatible
@@ -168,7 +168,7 @@ class ChatRoom(models.Model):
         messages as they are generated.
         """
         print("============group_name============" + str(self.id))
-        return "room-%s" % self.id
+        return "chatroom-%s" % self.id
 
     # 해당 채팅방의 모든 ChatMember를 가져온다 (이 멤버들의 이름이 곧 채팅방의 이름)
     def get_chatRoomMembers(self):
