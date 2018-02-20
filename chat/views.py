@@ -95,7 +95,6 @@ class GroupListAPIView(ListAPIView):
             member_query = User.objects.get(pk=userId)  # 현재 사용자에 대한 정보 가져옴
             # group_query = GroupMember.objects.filter(pk=groupId)
             # print(group_query)
-
         except:
             status_code['GROUP_MADE_FAIL']['data'] = request.data
             return Response({'result': status_code['GROUP_MADE_FAIL']}, status=status.HTTP_200_OK)
@@ -185,7 +184,7 @@ class GroupInviteAPIView(APIView):
         try:
             queryset = User.objects.get(user_email=participants)
             group_query = Group.objects.get(pk=groupId)
-            #qs = Group.objects.get(pk=groupId)
+            # qs = Group.objects.get(pk=groupId)
 
             # print("qs는?")
             # print(qs.id)

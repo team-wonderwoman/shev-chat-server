@@ -6,13 +6,13 @@ const_value = {
     'SESSION_DOES_NOT_EXIST': 'Session does not exist',
     'SESSION_EXPIRE': 'Session expired',
     'TOKEN_DOES_NOT_EXIST': 'Token does not exist',
-    'INVITATION_LINK': 'http://192.168.0.24:9002/api/group/invitation/',
-    'PARTICIPATION_LINK': 'http://192.168.0.24:9002/api/group/join/',
+    'INVITATION_LINK': 'http://192.168.0.33:9000/api/group/invitation/',
+    'PARTICIPATION_LINK': 'http://192.168.0.33:9000/api/group/join/',
     'CONFIRMATION_LINK': 'http://192.168.0.24:8000/api/accounts/signup/',
 }
 
 status_code = {
-    'SUCCESS':{
+    'SUCCESS': {
             "code": 1,
             "msg": "Request Sucess",
             "data": ""
