@@ -1,6 +1,5 @@
 from django.conf.urls import include, url
 from rest_framework.urlpatterns import format_suffix_patterns
-from . import views
 
 from .views import (
     GroupListAPIView,
@@ -18,8 +17,8 @@ from .views import (
     ChatRoomDetailViewSet,
     ChatRoomInviteAPIView,
 
-    # TopicFileUploadView,
-    # TopicFileDownloadView,
+    TopicFileView,
+    ChatRoomFileView,
 )
 
 topic_list = TopicListViewSet.as_view({
@@ -97,4 +96,10 @@ urlpatterns = format_suffix_patterns([
 
     ###########################################################################################
 
+    # api/group/topicfile [POST]
+    # topicfile에 관한 데이터를 websocket으로 같은 그룹 모두에게 전달한다
+    url(r'^topicfile/$', TopicFileView.as_view()),
+
+    # api/group/chatroomfile [POST]
+    url(r'^chatroomfile/$', ChatRoomFileView.as_view()),
 ])

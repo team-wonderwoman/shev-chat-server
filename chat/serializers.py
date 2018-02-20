@@ -1,23 +1,17 @@
-from rest_framework import serializers
-from .models import Group, GroupMember
-
-# from .models import ChatRoom, ChatMember, Message
-from AuthSer.models import User
-
-from .models import (
-    Topic, TopicMessage,
-    # TopicFile,
-    ChatRoom, ChatRoomMember, ChatRoomMessage,
-
-)
 from rest_framework.renderers import JSONRenderer
-
 from rest_framework.serializers import (
     ModelSerializer,
     SerializerMethodField,
     HyperlinkedModelSerializer,
     HyperlinkedIdentityField
 )
+
+from .models import (
+    Group, GroupMember,
+    Topic, TopicMessage,
+    ChatRoom, ChatRoomMember, ChatRoomMessage,
+)
+from AuthSer.models import User
 
 
 class GroupListSerializer(ModelSerializer):
@@ -26,12 +20,11 @@ class GroupListSerializer(ModelSerializer):
         fields = ('id', 'group_name', 'manager_id', )  #__all__
 
 
-
 class GroupMemberModelSerializer(ModelSerializer):
     class Meta:
         model = GroupMember
         fields = ('id', 'group_id', 'user_id', 'is_active', )  #__all__
-    #
+
     # def create(self, validated_data):
     #     group_id = validated_data.pop('group_id')
     #     members = validated_data.pop('members')
@@ -137,25 +130,12 @@ class ChatRoomMessageSerializer(ModelSerializer):
 
     class Meta:
         model = ChatRoomMessage
-        fields = ('sender', 'chatRoom', 'contents', 'created_time')
+        fields = '__all__'
+        # fields = ('sender', 'chatRoom', 'contents', 'created_time')
 
     def get_sender(self, obj):
         return obj.user.user_name
 
 
 ####################################################################
-#
-# class TopicFileUploadSerializer(ModelSerializer):
-#
-#     class Meta:
-#         model = TopicFile
-#         fields = ('user', 'message', 'file')
-#         read_only_fields = ('created_time', )
-#
-#
-# class TopicFileDownloadSerializer(ModelSerializer):
-#
-#     class Meta:
-#         model = TopicFile
-#         fields = ('user', 'message', 'file')
-#         read_only_fields = ('created_time', )
+

@@ -4,7 +4,6 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 from .exceptions import ClientError
 from .utils import get_room_or_error, get_previous_messages, save_message
-from .models import Topic, TopicMessage
 
 
 class ChatConsumer(AsyncJsonWebsocketConsumer):
@@ -142,17 +141,14 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         Called by receive_json when someone sends a message to a room.
         """
         print("============send_room============")
-        print(self)
-        print(type(self))
-        print(content)
-        print(type(content))  # dict
 
         room_type = content['roomtype']
         room_id = content['room']  # 들어온 topic/chatroom의 pk
         sender_id = content['sender']
         message = content['message']
-        print("ROOM_ACCESS_DENIED check")
-        print(self.rooms)
+        print("--ROOM_ACCESS_DENIED check--")
+        print("self.rooms: " + str(self.rooms))
+        print("room_id: " + str(room_id))
 
         # Check they are in this room
         if room_id not in self.rooms:
@@ -165,8 +161,6 @@ class ChatConsumer(AsyncJsonWebsocketConsumer):
         json_data = await save_message(room_id, sender_id, room_type, message)
         sender_name = json_data['sender_name']
         message = json_data['messages_serializer']
-        print(sender_name)
-        print(message)
 
         await self.channel_layer.group_send(
             room.group_name,
