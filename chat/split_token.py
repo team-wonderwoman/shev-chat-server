@@ -8,7 +8,6 @@ from common.const import const_value, status_code
 def split_header_token(request):
     # logger.debug("Split_header_token 수행 시작")
     print("split_header_token")
-    print(request.POST)
 
     # 헤더에 토큰이 있으면 가져오고, 없으면 None
     header_token = request.META.get('HTTP_AUTHORIZATION', None)

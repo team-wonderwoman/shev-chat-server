@@ -20,7 +20,8 @@ class TokenMiddleware(object):
 
         if request.path.startswith('/api/group/join/') \
                 or request.path.startswith('/api/group/topicfile/') \
-                or request.path.startswith('/api/group/chatroomfile/'):
+                or request.path.startswith('/api/group/chatroomfile/') \
+                or request.path.startswith('/favicon.ico'):
             response = self.get_response(request)
             return response
 
