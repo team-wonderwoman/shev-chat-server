@@ -43,7 +43,7 @@ def get_previous_messages(room_id, user, room_type):
             # We want to show the last 100 messages, ordered most-recent-last
             # (기존의 메시지 50개를 가져온다)
             queryset = TopicMessage.objects.filter(topic_id=room.id)
-            qs = queryset.order_by("pk")[:50]
+            qs = queryset.order_by("pk")[:100]
             print("qs count: " + str(qs.count()))
 
             messages_serializer = TopicMessageSerializer(qs, many=True)
@@ -56,7 +56,7 @@ def get_previous_messages(room_id, user, room_type):
             # We want to show the last 100 messages, ordered most-recent-last
             # (기존의 메시지 50개를 가져온다)
             queryset = ChatRoomMessage.objects.filter(chatRoom=room.id)
-            qs = queryset.order_by("pk")[:50]
+            qs = queryset.order_by("pk")[:100]
             print("qs count: " + str(qs.count()))
 
             messages_serializer = ChatRoomMessageSerializer(qs, many=True)

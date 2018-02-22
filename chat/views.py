@@ -463,7 +463,7 @@ class TopicDetailViewSet(ModelViewSet):
         try:
             topic_serializer = TopicDetailSerializer(topic)
 
-            topic_message = topic.topic_messages.order_by('created_time')[:50]
+            topic_message = topic.topic_messages.order_by('created_time')[:100]
             topic_message_serializer = TopicMessageSerializer(topic_message, many=True)
 
         # We want to show the last 100 messages, ordered most-recent-last
@@ -638,7 +638,7 @@ class ChatRoomDetailViewSet(ModelViewSet):
         try:
             chatroom_serializer = ChatRoomDetailSerializer(chatroom)
 
-            chatroom_message = chatroom.chatRoomMessages.order_by('-created_time')[:50]
+            chatroom_message = chatroom.chatRoomMessages.order_by('-created_time')[:100]
             chatroom_message_serializer = ChatRoomMessageSerializer(chatroom_message, many=True)
 
             # We want to show the last 50 messages, ordered most-recent-last
