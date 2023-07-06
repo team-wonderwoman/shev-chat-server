@@ -58,7 +58,7 @@ pyparsing==2.0.1
 python-dateutil==1.5
 pytz==2017.3
 redis==2.10.6
-scipy==0.13.0b1
+scipy==1.10.0
 six==1.4.1
 Twisted==17.9.0
 txaio==2.8.2
